@@ -9,7 +9,18 @@ import {
   FileCode, 
   Layers, 
   Lock, 
-  Wifi 
+  Wifi,
+  Monitor,
+  Scan,
+  Edit,
+  RefreshCw,
+  Trash2,
+  FileJson,
+  Key,
+  Shield,
+  Smartphone,
+  AlertTriangle,
+  FolderOpen
 } from 'lucide-react';
 
 export default function DocumentationView() {
@@ -48,7 +59,7 @@ export default function DocumentationView() {
       {/* NFC Simulator Explanation Banner */}
       <div className="relative overflow-hidden border border-amber-500/20 bg-amber-950/15 rounded-2xl p-6 space-y-3">
         <div className="flex items-center gap-2 text-amber-400">
-          <span className="text-lg">🖥️</span>
+          <Monitor className="w-5 h-5 text-amber-400" />
           <h3 className="font-bold text-sm tracking-tight text-amber-200 uppercase font-sans">
             What is the purpose of the NFC Simulator?
           </h3>
@@ -74,8 +85,9 @@ export default function DocumentationView() {
         {/* 1. READ NFC TAGS */}
         <div className="glass-panel rounded-xl p-5 border border-gray-800/80 space-y-2.5">
           <div className="flex items-center gap-2 text-blue-400">
+            <Scan className="w-4 h-4 text-blue-400" />
             <span className="font-bold text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded font-mono">01</span>
-            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">🟢 Read NFC Tags</h4>
+            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">Read NFC Tags</h4>
           </div>
           <p className="text-xs text-gray-400 leading-relaxed">
             Read physical NDEF (NFC Data Exchange Format) tags on contact. You can extract plain text, web URLs, phone directory sequences (<code className="text-blue-300 font-mono">tel:</code>), email structures, SMS drafts, Wi-Fi configuration matrices, and raw JSON payloads.
@@ -85,8 +97,9 @@ export default function DocumentationView() {
         {/* 2. WRITE TO NFC TAGS */}
         <div className="glass-panel rounded-xl p-5 border border-gray-800/80 space-y-2.5">
           <div className="flex items-center gap-2 text-blue-400">
+            <Edit className="w-4 h-4 text-blue-400" />
             <span className="font-bold text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded font-mono">02</span>
-            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">✍️ Write to NFC Tags</h4>
+            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">Write to NFC Tags</h4>
           </div>
           <p className="text-xs text-gray-400 leading-relaxed">
             Program NDEF compatible chips (such as NTAG213, NTAG215, or NTAG216). Write direct web links, customized text cards, map coordinates, direct phone dials, pre-populated email drafts, and complex nested data strings.
@@ -96,8 +109,9 @@ export default function DocumentationView() {
         {/* 3. OVERWRITE NFC TAGS */}
         <div className="glass-panel rounded-xl p-5 border border-gray-800/80 space-y-2.5">
           <div className="flex items-center gap-2 text-blue-400">
+            <RefreshCw className="w-4 h-4 text-blue-400" />
             <span className="font-bold text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded font-mono">03</span>
-            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">🔁 Overwrite NFC Tags</h4>
+            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">Overwrite NFC Tags</h4>
           </div>
           <p className="text-xs text-gray-400 leading-relaxed">
             Modify or completely replace old structures on physical tags instantly with new NDEF payloads. Overwriting is fully supported as long as the sector blocks are writable and have not been set to permanent read-only status.
@@ -107,8 +121,9 @@ export default function DocumentationView() {
         {/* 4. "ERASE" NFC TAGS */}
         <div className="glass-panel rounded-xl p-5 border border-gray-800/80 space-y-2.5">
           <div className="flex items-center gap-2 text-blue-400">
+            <Trash2 className="w-4 h-4 text-blue-400" />
             <span className="font-bold text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded font-mono">04</span>
-            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">🧹 Erase Tags (Overwrite Method)</h4>
+            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">Erase Tags (Overwrite Method)</h4>
           </div>
           <p className="text-xs text-gray-400 leading-relaxed">
             Since there is no native physical "factory reset" button in commercial NFC chips, erasing is accomplished by overwriting the memory sectors with a clean, empty text record to safely wipe existing data blocks.
@@ -118,8 +133,9 @@ export default function DocumentationView() {
         {/* 5. FORMAT NFC TAGS */}
         <div className="glass-panel rounded-xl p-5 border border-gray-800/80 space-y-2.5">
           <div className="flex items-center gap-2 text-blue-400">
+            <FileCode className="w-4 h-4 text-blue-400" />
             <span className="font-bold text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded font-mono">05</span>
-            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">🧾 Format NFC Tags</h4>
+            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">Format NFC Tags</h4>
           </div>
           <p className="text-xs text-gray-400 leading-relaxed">
             Prepare raw or corrupted tags for reuse. Formatting programs a standard, empty NDEF container registry to establish a clean directory index ready to receive structured payloads.
@@ -129,8 +145,9 @@ export default function DocumentationView() {
         {/* 6. LOCK NFC TAGS */}
         <div className="glass-panel rounded-xl p-5 border border-gray-800/80 space-y-2.5">
           <div className="flex items-center gap-2 text-blue-400">
+            <Lock className="w-4 h-4 text-blue-400" />
             <span className="font-bold text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded font-mono">06</span>
-            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">🔒 Lock NFC Tags</h4>
+            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">Lock NFC Tags</h4>
           </div>
           <p className="text-xs text-gray-400 leading-relaxed">
             Permanent locking turns a writable tag into a read-only tag. Please note that permanent locks are irreversible and are highly hardware-dependent; lock commands are often handled directly via native Android/iOS developer toolsets.
@@ -140,8 +157,9 @@ export default function DocumentationView() {
         {/* 7. MULTI-RECORD TAGS */}
         <div className="glass-panel rounded-xl p-5 border border-gray-800/80 space-y-2.5">
           <div className="flex items-center gap-2 text-blue-400">
+            <FolderOpen className="w-4 h-4 text-blue-400" />
             <span className="font-bold text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded font-mono">07</span>
-            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">📦 Multi-Record Tags</h4>
+            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">Multi-Record Tags</h4>
           </div>
           <p className="text-xs text-gray-400 leading-relaxed">
             Write and parse multiple distinct entries on a single tag (e.g. Record 1: Wi-Fi setup, Record 2: Portfolio Website, Record 3: Contact vCard). This app supports multi-record structures, reading and displaying each individually.
@@ -151,8 +169,9 @@ export default function DocumentationView() {
         {/* 8. NFC TRIGGER ACTIONS */}
         <div className="glass-panel rounded-xl p-5 border border-gray-800/80 space-y-2.5">
           <div className="flex items-center gap-2 text-blue-400">
+            <Terminal className="w-4 h-4 text-blue-400" />
             <span className="font-bold text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded font-mono">08</span>
-            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">📲 NFC Trigger Actions</h4>
+            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">NFC Trigger Actions</h4>
           </div>
           <p className="text-xs text-gray-400 leading-relaxed">
             Trigger standard phone actions automatically on tap. Launch web browsers via URLs, open maps coordinates, dial phone numbers, trigger email drafts, compose SMS messages, or initiate deep app links (Android Intent actions).
@@ -162,8 +181,9 @@ export default function DocumentationView() {
         {/* 9. PERMISSION + SECURITY LIMITS */}
         <div className="glass-panel rounded-xl p-5 border border-gray-800/80 space-y-2.5">
           <div className="flex items-center gap-2 text-blue-400">
+            <Shield className="w-4 h-4 text-blue-400" />
             <span className="font-bold text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded font-mono">09</span>
-            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">🔐 Permission &amp; Security limits</h4>
+            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">Permission &amp; Security limits</h4>
           </div>
           <p className="text-xs text-gray-400 leading-relaxed">
             Web NFC is heavily sandboxed for safety: it requires a secure cryptographic HTTPS context, active browser tab visibility, and is strictly restricted to user-initiated gestures (explicit tap-to-start triggers). Passive background scanning is blocked.
@@ -173,8 +193,9 @@ export default function DocumentationView() {
         {/* 10. DEVICE LIMITATIONS */}
         <div className="glass-panel rounded-xl p-5 border border-gray-800/80 space-y-2.5">
           <div className="flex items-center gap-2 text-blue-400">
+            <Smartphone className="w-4 h-4 text-blue-400" />
             <span className="font-bold text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded font-mono">10</span>
-            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">📱 Device Limitations</h4>
+            <h4 className="font-bold text-xs text-gray-100 uppercase tracking-wide">Device Limitations</h4>
           </div>
           <p className="text-xs text-gray-400 leading-relaxed">
             The physical Web NFC API is only supported on Android devices using Chrome, Opera, or Edge browsers. Desktop platforms (Windows, macOS) and Apple iOS devices do not expose NDEF transmission capabilities to standard web browsers.
@@ -184,8 +205,9 @@ export default function DocumentationView() {
         {/* 11. WHAT YOU CANNOT DO */}
         <div className="glass-panel rounded-xl p-5 border border-gray-800/80 space-y-2.5 md:col-span-2 font-sans">
           <div className="flex items-center gap-2 text-red-400">
+            <AlertTriangle className="w-4 h-4 text-red-400" />
             <span className="font-bold text-[10px] bg-red-950/20 text-red-400 border border-red-900/40 px-2 py-0.5 rounded font-mono">11</span>
-            <h4 className="font-bold text-xs text-red-300 uppercase tracking-wide">🧠 Hardware &amp; OS Restrictions (What You Cannot Do)</h4>
+            <h4 className="font-bold text-xs text-red-300 uppercase tracking-wide">Hardware &amp; OS Restrictions (What You Cannot Do)</h4>
           </div>
           <div className="text-xs text-gray-400 leading-relaxed space-y-2 font-sans">
             <p>

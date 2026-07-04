@@ -1,4 +1,4 @@
-# NFC Writer — Contactless NDEF Developer Suite Pro (v1.0.0)
+# NFC Writer — Contactless NDEF Developer Suite Pro (v1.2.1)
 
 URL: [https://nfc.aiue.se/](https://nfc.aiue.se/)
 
@@ -8,7 +8,7 @@ This application is built entirely client-side using **React 18**, **Vite**, and
 
 ---
 
-## 🖥️ The Web NFC API & Software Simulator
+## The Web NFC API & Software Simulator
 
 ### The Challenge of Native Web NFC
 The native **W3C Web NFC API** allows web applications to read and write Near Field Communication (NFC) tags. However, the standard is heavily sandboxed and restricted by modern browser vendors:
@@ -24,7 +24,7 @@ To enable comprehensive cross-platform development, NFC Writer implements an act
 
 ---
 
-## 🌟 Comprehensive Feature Set (11-Point Matrix)
+## Comprehensive Feature Set (11-Point Matrix)
 
 NFC Writer fully implements and documents the maximum bounds of web-accessible RFID capabilities:
 
@@ -42,7 +42,7 @@ NFC Writer fully implements and documents the maximum bounds of web-accessible R
 
 ---
 
-## 📁 Technical Architecture & Project Structure
+## Technical Architecture & Project Structure
 
 The codebase is engineered with high modularity and robust separation of concerns:
 
@@ -56,7 +56,7 @@ The codebase is engineered with high modularity and robust separation of concern
 
 ---
 
-## ⚙️ Local Development & Deployment
+## Local Development & Deployment
 
 Run this application locally or deploy it to any static web server:
 
@@ -78,7 +78,7 @@ Upon executing `npm run build`, all compiled static assets, the web app manifest
 
 ---
 
-## 🔒 Security & Privacy Policy
+## Security & Privacy Policy
 
 NFC Writer is designed with a strict zero-trust privacy model:
 - **100% Client-Side:** No databases, background APIs, or telemetry log servers are implemented.

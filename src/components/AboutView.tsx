@@ -26,7 +26,7 @@ export default function AboutView() {
             <h3 className="font-bold text-sm text-gray-200">Contactless Engineering Built Client-Side</h3>
             <div className="text-xs text-gray-400 leading-relaxed space-y-3 select-text">
               <p>
-                NFC Writer (v1.0.0) is a robust, full-stack client-side Progressive Web Application designed for programming, scanning, parsing, and diagnosing high-frequency RFID/NFC chips. Built entirely in React and styled with a glassmorphism theme, this applet operates 100% locally on your browser.
+                NFC Writer (v1.2.1) is a robust, full-stack client-side Progressive Web Application designed for programming, scanning, parsing, and diagnosing high-frequency RFID/NFC chips. Built entirely in React and styled with a glassmorphism theme, this applet operates 100% locally on your browser.
               </p>
               <p>
                 By avoiding backend databases, your personal Wi-Fi configurations, phone lines, coordinates, or vCard details are never uploaded or synced to external servers, guaranteeing maximum privacy and cryptographic security.
@@ -48,10 +48,23 @@ export default function AboutView() {
             <div className="space-y-4 text-xs font-mono">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-gray-200">v1.0.0</span>
+                  <span className="font-bold text-gray-200">v1.2.1</span>
+                  <span className="text-[10px] text-emerald-400 font-bold uppercase">• Bugfix &amp; PWA Stabilization</span>
+                </div>
+                <ul className="list-disc pl-4 text-gray-400 text-[11px] space-y-0.5 leading-relaxed">
+                  <li>Upgraded service worker updating checks in main entry block.</li>
+                  <li>Injected active software simulation timeouts reference cleaning upon components unmounting.</li>
+                  <li>Overwrote erase-blocks payload definition with a clean single empty text record structure.</li>
+                  <li>Added an 11-point capabilities matrix documenting native sandbox limitations.</li>
+                </ul>
+              </div>
+
+              <div className="space-y-1 border-t border-gray-900/50 pt-3">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-gray-400">v1.0.0</span>
                   <span className="text-[10px] text-gray-500">• Initial Production Spec Release</span>
                 </div>
-                <ul className="list-disc pl-4 text-gray-450 text-[11px] space-y-0.5 leading-relaxed">
+                <ul className="list-disc pl-4 text-gray-500 text-[11px] space-y-0.5 leading-relaxed">
                   <li>Full Web NFC NDEF scanning and multi-record encoding.</li>
                   <li>Real-time Device hardware compatibility diagnostic dashboard.</li>
                   <li>Integrated 20 system NDEF templates (Wi-Fi, social handles, maps).</li>

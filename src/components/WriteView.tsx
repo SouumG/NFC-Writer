@@ -19,7 +19,9 @@ import {
   Grid,
   Info,
   RefreshCw,
-  Plus
+  Plus,
+  Cpu,
+  Radio
 } from 'lucide-react';
 import { NFCRecordType, NFCTemplate, NFCHistoryEntry, NFCCompatibilityReport } from '../types';
 import { generateId, generateVCard, generateWifiString, generateCalendarString } from '../data';
@@ -568,7 +570,8 @@ export default function WriteView({
               }`}
               title="Communicate with actual physical NFC hardware via the Web NFC API"
             >
-              <span>🔌 Hardware</span>
+              <Cpu className="w-3.5 h-3.5" />
+              <span>Hardware</span>
             </button>
             <button
               onClick={() => setUseSimulator(true)}
@@ -579,7 +582,8 @@ export default function WriteView({
               }`}
               title="Emulate NDEF transmission in a software simulation environment"
             >
-              <span>🖥️ Simulator</span>
+              <Radio className="w-3.5 h-3.5" />
+              <span>Simulator</span>
             </button>
           </div>
 

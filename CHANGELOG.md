@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-07-04
+
+### Added
+- **Web NFC Specs & Simulator Documentation**: Added an active software-level explanation detailing exactly why the simulator exists and how it enables testing on desktop platforms (macOS/Windows) and Safari on iOS.
+- **Hardware Limitations Matrix**: Outlined an 11-point system matrix detailing Web NFC capabilities and standard OS sandboxing limits (what physical tags can do vs. what browsers are security-barred from executing, e.g. Wi-Fi adapter or screen brightness toggles).
+
+### Changed
+- **Erase Tag Payload definition**: Enhanced erase operations to safely overwrite tags with clean, standardized empty text record blocks.
+- **SW Update Lifecycles**: Integrated automated byte-for-byte check triggers inside the main registration flow to activate code changes instantly.
+
+### Fixed
+- **Simulator memory leak prevention**: Added standard `useRef` array trackers to clear simulated writing timeouts when component pages are unmounted.
+
 ## [1.0.0] - 2026-07-04
 
 ### Added
