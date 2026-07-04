@@ -163,6 +163,7 @@ export default function App() {
   // Helper: Navigation Trigger
   const handleNavigate = (page: string) => {
     window.location.hash = page;
+    setSidebarOpen(false);
   };
 
   // Helper: Install PWA
@@ -281,11 +282,22 @@ export default function App() {
 
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-1.5 hover:bg-gray-900 rounded-lg text-gray-400 hover:text-white cursor-pointer"
+          className={`p-1.5 hover:bg-gray-900 rounded-lg text-gray-400 hover:text-white cursor-pointer relative transition-colors ${
+            sidebarOpen ? 'z-51 text-white bg-gray-900' : 'z-40'
+          }`}
+          aria-label={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
         >
           {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </header>
+
+      {/* Mobile Backdrop Overlay - Clicking outside closes the sidebar */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-45 md:hidden transition-opacity duration-300"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
       {/* Side Navigation Bar */}
       <aside className={`fixed inset-y-0 left-0 w-64 bg-gray-950 border-r border-gray-850/65 flex flex-col justify-between z-50 md:sticky md:top-0 h-screen transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
@@ -302,15 +314,8 @@ export default function App() {
               </div>
               <div className="text-left">
                 <div className="font-bold leading-none text-sm">NFC Writer</div>
-                <span className="text-[10px] text-gray-500 font-semibold font-mono tracking-wide mt-0.5 block">SUITE v1.2.1</span>
+                <span className="text-[10px] text-gray-500 font-semibold font-mono tracking-wide mt-0.5 block">SUITE v1.2.2</span>
               </div>
-            </button>
-
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="md:hidden p-1.5 hover:bg-gray-900 rounded-md text-gray-500 cursor-pointer"
-            >
-              <X className="w-4.5 h-4.5" />
             </button>
           </div>
 
@@ -478,7 +483,7 @@ export default function App() {
             &copy; 2026 NFC Writer. Hosted at: <a href="https://nfc.aiue.se/" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-blue-400 font-mono">https://nfc.aiue.se/</a>
           </div>
           <div className="flex items-center gap-3">
-            <span>Version v1.2.1 (Production)</span>
+            <span>Version v1.2.2 (Production)</span>
             <span>•</span>
             <button onClick={() => handleNavigate('legal')} className="hover:text-blue-400 cursor-pointer">Privacy & Terms</button>
           </div>

@@ -78,6 +78,8 @@ export default function WriteView({
   const [geoTitle, setGeoTitle] = useState('San Francisco, CA');
 
   const [jsonVal, setJsonVal] = useState('{\n  "version": "1.0.0",\n  "active": true,\n  "role": "NFC Keycard"\n}');
+  const [formatMemorySize, setFormatMemorySize] = useState('504');
+  const [isCustomFormatSize, setIsCustomFormatSize] = useState(false);
   const [mimeType, setMimeType] = useState('application/json');
   const [mimeData, setMimeData] = useState('{"key": "val"}');
 
@@ -322,15 +324,16 @@ export default function WriteView({
   // Mock writing simulator for desktops
   const executeMockWrite = (records: any[], isIframe = false) => {
     const t1 = setTimeout(() => {
+      const tagDesc = isCustomFormatSize ? `Custom • ${formatMemorySize || 0} Bytes` : `NTAG • ${formatMemorySize} Bytes`;
       if (isIframe) {
         setWriteLogs(prev => [
           ...prev, 
           'Iframe Sandbox Detected: Physical Web NFC is restricted inside preview iframes.',
           'Activating high-fidelity RFID simulator...',
-          'Mock Tag detected (NTAG215 • 504 Bytes).'
+          `Mock Tag detected (${tagDesc}).`
         ]);
       } else {
-        setWriteLogs(prev => [...prev, 'Simulator Mode Active: Emulating tag alignment...', 'Mock Tag detected (NTAG215 • 504 Bytes).']);
+        setWriteLogs(prev => [...prev, 'Simulator Mode Active: Emulating tag alignment...', `Mock Tag detected (${tagDesc}).`]);
       }
     }, 600);
 
@@ -1067,20 +1070,36 @@ export default function WriteView({
                   </div>
                   <div className="space-y-3 bg-gray-900/40 p-4 border border-gray-850/60 rounded-xl text-xs">
                     <div className="font-bold text-gray-200">Select Target Capacity</div>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="p-2 bg-gray-950 border border-gray-800 rounded-lg text-center cursor-pointer">
-                        <div className="font-bold text-gray-300">NTAG213</div>
-                        <div className="text-[10px] text-gray-500">144 Bytes</div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      <div onClick={() => { setFormatMemorySize('144'); setIsCustomFormatSize(false); }} className={`p-2 border rounded-lg text-center cursor-pointer transition-colors ${!isCustomFormatSize && formatMemorySize === '144' ? 'bg-blue-950/40 border-blue-500/30' : 'bg-gray-950 border-gray-800 hover:bg-gray-800'}`}>
+                        <div className={`font-bold ${!isCustomFormatSize && formatMemorySize === '144' ? 'text-blue-300' : 'text-gray-300'}`}>NTAG213</div>
+                        <div className={`text-[10px] ${!isCustomFormatSize && formatMemorySize === '144' ? 'text-blue-500' : 'text-gray-500'}`}>144 Bytes</div>
                       </div>
-                      <div className="p-2 bg-blue-950/40 border border-blue-500/30 rounded-lg text-center cursor-pointer">
-                        <div className="font-bold text-blue-300">NTAG215</div>
-                        <div className="text-[10px] text-blue-500">504 Bytes</div>
+                      <div onClick={() => { setFormatMemorySize('504'); setIsCustomFormatSize(false); }} className={`p-2 border rounded-lg text-center cursor-pointer transition-colors ${!isCustomFormatSize && formatMemorySize === '504' ? 'bg-blue-950/40 border-blue-500/30' : 'bg-gray-950 border-gray-800 hover:bg-gray-800'}`}>
+                        <div className={`font-bold ${!isCustomFormatSize && formatMemorySize === '504' ? 'text-blue-300' : 'text-gray-300'}`}>NTAG215</div>
+                        <div className={`text-[10px] ${!isCustomFormatSize && formatMemorySize === '504' ? 'text-blue-500' : 'text-gray-500'}`}>504 Bytes</div>
                       </div>
-                      <div className="p-2 bg-gray-950 border border-gray-800 rounded-lg text-center cursor-pointer">
-                        <div className="font-bold text-gray-300">NTAG216</div>
-                        <div className="text-[10px] text-blue-500">888 Bytes</div>
+                      <div onClick={() => { setFormatMemorySize('888'); setIsCustomFormatSize(false); }} className={`p-2 border rounded-lg text-center cursor-pointer transition-colors ${!isCustomFormatSize && formatMemorySize === '888' ? 'bg-blue-950/40 border-blue-500/30' : 'bg-gray-950 border-gray-800 hover:bg-gray-800'}`}>
+                        <div className={`font-bold ${!isCustomFormatSize && formatMemorySize === '888' ? 'text-blue-300' : 'text-gray-300'}`}>NTAG216</div>
+                        <div className={`text-[10px] ${!isCustomFormatSize && formatMemorySize === '888' ? 'text-blue-500' : 'text-gray-500'}`}>888 Bytes</div>
+                      </div>
+                      <div onClick={() => setIsCustomFormatSize(true)} className={`p-2 border rounded-lg text-center cursor-pointer flex flex-col justify-center transition-colors ${isCustomFormatSize ? 'bg-blue-950/40 border-blue-500/30' : 'bg-gray-950 border-gray-800 hover:bg-gray-800'}`}>
+                        <div className={`font-bold ${isCustomFormatSize ? 'text-blue-300' : 'text-gray-300'}`}>Custom</div>
+                        <div className={`text-[10px] ${isCustomFormatSize ? 'text-blue-500' : 'text-gray-500'}`}>Any Size</div>
                       </div>
                     </div>
+                    {isCustomFormatSize && (
+                      <div className="mt-3">
+                        <label className="block text-[11px] font-bold text-gray-400 mb-1.5">Custom Memory Size (Bytes)</label>
+                        <input
+                          type="number"
+                          value={formatMemorySize}
+                          onChange={(e) => setFormatMemorySize(e.target.value)}
+                          className="w-full bg-black/40 border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500 transition-all font-mono"
+                          placeholder="e.g. 1024"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
