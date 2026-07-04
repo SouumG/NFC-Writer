@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   PenTool, 
   Trash2, 
@@ -89,11 +89,21 @@ export default function WriteView({
   const [writeResult, setWriteResult] = useState<'success' | 'failed' | null>(null);
   const [writeLogs, setWriteLogs] = useState<string[]>([]);
   const [writeError, setWriteError] = useState('');
+  const [useSimulator, setUseSimulator] = useState(!report.readyToUse);
   
   const [verifyOption, setVerifyOption] = useState(true);
   const [templateName, setTemplateName] = useState('');
   const [templateDesc, setTemplateDesc] = useState('');
   const [showSaveModal, setShowSaveModal] = useState(false);
+
+  const timeoutIdsRef = useRef<any[]>([]);
+
+  // Clear all pending mock simulation timeouts on unmount to prevent crashes
+  useEffect(() => {
+    return () => {
+      timeoutIdsRef.current.forEach(id => clearTimeout(id));
+    };
+  }, []);
 
   // Generate NDEF message array based on selected type
   const compileNDEFMessage = () => {
@@ -138,7 +148,7 @@ export default function WriteView({
         recordsList.push({
           recordType: 'mime',
           mediaType: 'text/vcard',
-          data: cardPayload
+          data: new TextEncoder().encode(cardPayload)
         });
         break;
       case 'wifi':
@@ -148,7 +158,7 @@ export default function WriteView({
         recordsList.push({
           recordType: 'mime',
           mediaType: 'application/vnd.wfa.wsc',
-          data: wifiStr
+          data: new TextEncoder().encode(wifiStr)
         });
         break;
       case 'calendar':
@@ -171,7 +181,7 @@ export default function WriteView({
         recordsList.push({
           recordType: 'mime',
           mediaType: 'text/calendar',
-          data: calStr
+          data: new TextEncoder().encode(calStr)
         });
         break;
       case 'location':
@@ -184,26 +194,26 @@ export default function WriteView({
         recordsList.push({
           recordType: 'mime',
           mediaType: 'application/json',
-          data: jsonVal
+          data: new TextEncoder().encode(jsonVal)
         });
         break;
       case 'mime':
         recordsList.push({
           recordType: 'mime',
           mediaType: mimeType,
-          data: mimeData
+          data: new TextEncoder().encode(mimeData)
         });
         break;
       case 'custom':
         recordsList.push({
           recordType: customType,
-          data: customPayload
+          data: new TextEncoder().encode(customPayload)
         });
         break;
       case 'aar':
         recordsList.push({
           recordType: 'android.com:pkg',
-          data: aarPackage
+          data: new TextEncoder().encode(aarPackage)
         });
         break;
       case 'erase':
@@ -242,7 +252,7 @@ export default function WriteView({
       return;
     }
 
-    if (!('NDEFReader' in window) || isIframe) {
+    if (useSimulator || !('NDEFReader' in window) || isIframe) {
       // Execute Mock Simulation on non-compatible systems or in iframe sandbox
       executeMockWrite(records, isIframe);
       return;
@@ -253,8 +263,8 @@ export default function WriteView({
       setWriteLogs(prev => [...prev, 'Listening for target NTAG sector...', 'Align your NFC tag...']);
       
       if (selectedType === 'erase') {
-        setWriteLogs(prev => [...prev, 'Executing Erase Operation: zeroing user memory sectors...']);
-        await ndef.write({ records: [] });
+        setWriteLogs(prev => [...prev, 'Executing Erase Operation: overwriting with blank NDEF records...']);
+        await ndef.write({ records: [{ recordType: 'text', data: '' }] });
       } else if (selectedType === 'format') {
         setWriteLogs(prev => [...prev, 'Executing NDEF Format Operation: establishing clean payload registry...']);
         await ndef.write({ records: [{ recordType: 'text', data: '' }] });
@@ -309,7 +319,7 @@ export default function WriteView({
 
   // Mock writing simulator for desktops
   const executeMockWrite = (records: any[], isIframe = false) => {
-    setTimeout(() => {
+    const t1 = setTimeout(() => {
       if (isIframe) {
         setWriteLogs(prev => [
           ...prev, 
@@ -322,7 +332,7 @@ export default function WriteView({
       }
     }, 600);
 
-    setTimeout(() => {
+    const t2 = setTimeout(() => {
       if (selectedType === 'erase') {
         setWriteLogs(prev => [...prev, 'Initializing sector zero-fill routine...']);
       } else if (selectedType === 'format') {
@@ -332,7 +342,7 @@ export default function WriteView({
       }
     }, 1200);
 
-    setTimeout(() => {
+    const t3 = setTimeout(() => {
       if (selectedType === 'erase') {
         setWriteLogs(prev => [...prev, 'Writing zero registers [0x04 - 0x2C]...', 'Erasing NDEF message header...']);
       } else if (selectedType === 'format') {
@@ -344,7 +354,7 @@ export default function WriteView({
       }
     }, 2000);
 
-    setTimeout(() => {
+    const t4 = setTimeout(() => {
       if (selectedType === 'erase') {
         setWriteLogs(prev => [...prev, 'Memory sectors successfully zeroed and cleared!']);
       } else if (selectedType === 'format') {
@@ -364,6 +374,8 @@ export default function WriteView({
         details: `Successfully simulated: ${selectedType === 'erase' ? 'Erase memory' : selectedType === 'format' ? 'Format NDEF' : JSON.stringify(records)}`
       });
     }, 2800);
+
+    timeoutIdsRef.current.push(t1, t2, t3, t4);
   };
 
   // Save customized current inputs as an NFC Template
@@ -545,6 +557,32 @@ export default function WriteView({
 
         {/* Action Toggle controls */}
         <div className="flex flex-wrap items-center gap-3 text-xs w-full sm:w-auto">
+          {/* Mode Selector */}
+          <div className="bg-gray-950 p-1 rounded-lg border border-gray-800 flex items-center gap-1">
+            <button
+              onClick={() => setUseSimulator(false)}
+              className={`px-2.5 py-1 rounded-md font-semibold text-[11px] transition-all flex items-center gap-1 cursor-pointer ${
+                !useSimulator 
+                  ? 'bg-blue-600 text-white' 
+                  : 'text-gray-400 hover:text-gray-200'
+              }`}
+              title="Communicate with actual physical NFC hardware via the Web NFC API"
+            >
+              <span>🔌 Hardware</span>
+            </button>
+            <button
+              onClick={() => setUseSimulator(true)}
+              className={`px-2.5 py-1 rounded-md font-semibold text-[11px] transition-all flex items-center gap-1 cursor-pointer ${
+                useSimulator 
+                  ? 'bg-amber-600 text-white' 
+                  : 'text-gray-400 hover:text-gray-200'
+              }`}
+              title="Emulate NDEF transmission in a software simulation environment"
+            >
+              <span>🖥️ Simulator</span>
+            </button>
+          </div>
+
           <label className="flex items-center gap-2 text-gray-300">
             <input 
               type="checkbox" 
@@ -1140,6 +1178,12 @@ export default function WriteView({
               <p className="text-xs text-gray-500 mt-1">
                 {writeResult === 'success' ? 'Your NDEF tag is safe to disconnect.' : writeResult === 'failed' ? 'Contactless communication failed.' : 'Align physical tag with device antenna.'}
               </p>
+              {writeResult === 'failed' && writeError && (
+                <div className="mt-2.5 p-2 bg-red-950/40 border border-red-500/20 rounded-lg text-[10px] text-red-400 text-left leading-relaxed">
+                  <span className="font-semibold text-red-300 block mb-0.5">Error Diagnostic:</span>
+                  {writeError}
+                </div>
+              )}
             </div>
 
             {/* Command terminal logs display */}
@@ -1153,21 +1197,40 @@ export default function WriteView({
             </div>
 
             {/* Modal action triggers */}
-            <div className="flex gap-3 pt-2">
-              {writeResult !== null && (
+            <div className="flex flex-col gap-2 pt-2">
+              <div className="flex gap-3">
+                {writeResult !== null && (
+                  <button
+                    onClick={() => setIsWriting(false)}
+                    className="w-full py-2 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-xs font-semibold text-gray-200 rounded-lg cursor-pointer transition-colors"
+                  >
+                    Close Terminal
+                  </button>
+                )}
+                {writeResult === 'failed' && (
+                  <button
+                    onClick={executeNDEFWrite}
+                    className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white rounded-lg cursor-pointer transition-colors"
+                  >
+                    Retry Hardware
+                  </button>
+                )}
+              </div>
+              {writeResult === 'failed' && !useSimulator && (
                 <button
-                  onClick={() => setIsWriting(false)}
-                  className="w-full py-2 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-xs font-semibold text-gray-200 rounded-lg cursor-pointer transition-colors"
+                  onClick={() => {
+                    setUseSimulator(true);
+                    setTimeout(() => {
+                      setIsWriting(true);
+                      setWriteResult(null);
+                      setWriteError('');
+                      setWriteLogs(['Booting Web NFC Engine (Simulator)...', 'Accessing simulated RFID writer...']);
+                      executeMockWrite(compileNDEFMessage(), false);
+                    }, 100);
+                  }}
+                  className="w-full py-2 bg-amber-600 hover:bg-amber-500 text-xs font-semibold text-white rounded-lg cursor-pointer transition-colors"
                 >
-                  Close Terminal
-                </button>
-              )}
-              {writeResult === 'failed' && (
-                <button
-                  onClick={executeNDEFWrite}
-                  className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white rounded-lg cursor-pointer transition-colors"
-                >
-                  Retry Write
+                  Switch to Simulator Mode &amp; Program Tag
                 </button>
               )}
             </div>

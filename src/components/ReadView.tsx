@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Scan, 
   X, 
@@ -32,8 +32,18 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
   const [serialNumber, setSerialNumber] = useState('');
   const [records, setRecords] = useState<any[]>([]);
   const [showRaw, setShowRaw] = useState(false);
+  const [scanLogs, setScanLogs] = useState<string[]>([]);
   
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Clean up scanning on unmount to prevent active Web NFC locks
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   // Stop scanning
   const stopScanning = (keepState = false) => {
@@ -57,6 +67,11 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
     try {
       setScanState('scanning');
       setErrorMessage('');
+      setScanLogs([
+        'Initializing Web NFC scanning controller...',
+        'Powering up device RFID reader (13.56 MHz band)...',
+        'Listening for contactless transponder targets...'
+      ]);
       
       const ndef = new NDEFReader();
       abortControllerRef.current = new AbortController();
@@ -67,6 +82,14 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
         try {
           const serial = event.serialNumber || 'N/A';
           setSerialNumber(serial);
+          
+          setScanLogs(prev => [
+            ...prev,
+            'Contactless transponder magnetic field response detected!',
+            `Successfully read tag hardware UID: ${serial}`,
+            'Siphoning NDEF sector bytes...',
+            'Demultiplexing record payloads...'
+          ]);
           
           const recordsList = event.message?.records || [];
           const parsedRecords = recordsList.map((record: any) => {
@@ -112,6 +135,11 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
           });
 
           setRecords(parsedRecords);
+          setScanLogs(prev => [
+            ...prev,
+            `Extracting complete. Found ${parsedRecords.length} record(s).`,
+            'Rendering tag details...'
+          ]);
           setScanState('success');
           
           // Save to History
@@ -159,7 +187,32 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
   // Mock Scan Injection for Desktop & Reviewers
   const injectMockScan = (preset: 'wifi' | 'vcard' | 'url' | 'location' | 'text' | 'json') => {
     setScanState('scanning');
+    setErrorMessage('');
+    setRecords([]);
+    setScanLogs([
+      'Booting RFID high-fidelity hardware emulator...',
+      'Mapping virtual antenna sector addresses...',
+      'Listening for simulated tag placement...'
+    ]);
     
+    setTimeout(() => {
+      setScanLogs(prev => [
+        ...prev,
+        'Simulated Tag aligned within range.',
+        'Mock tag transponder detected: NTAG215 (504 Bytes capacity).',
+        'Executing contactless RF handshake protocol...'
+      ]);
+    }, 500);
+
+    setTimeout(() => {
+      setScanLogs(prev => [
+        ...prev,
+        'Retrieving physical hardware UID: 04:A2:BC:92:4F:5D:80',
+        'Extracting raw NDEF binary footprint...',
+        'Parsing record headers and payload formats...'
+      ]);
+    }, 1100);
+
     setTimeout(() => {
       const serial = '04:A2:BC:92:4F:5D:80';
       setSerialNumber(serial);
@@ -234,7 +287,7 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
         summary: `Mock Scanned tag (${preset.toUpperCase()})`,
         details: JSON.stringify({ serialNumber: serial, records: mockRecords.map(r => ({ recordType: r.recordType, text: r.text })) })
       });
-    }, 1500);
+    }, 1800);
   };
 
   // Convert array to hex string
@@ -359,17 +412,29 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
 
         {/* State: SCANNING */}
         {scanState === 'scanning' && (
-          <div className="text-center max-w-sm space-y-4 z-10">
-            <div className="relative w-20 h-20 bg-blue-950/40 border border-blue-500/30 rounded-full flex items-center justify-center mx-auto pulse-glowing">
-              <Scan className="w-9 h-9 text-blue-400" />
-              {/* Spinning Loader Ring */}
-              <div className="absolute inset-0 rounded-full border-2 border-t-transparent border-blue-500 animate-spin"></div>
+          <div className="w-full max-w-md space-y-5 z-10 flex flex-col items-center">
+            <div className="text-center space-y-2">
+              <div className="relative w-16 h-16 bg-blue-950/40 border border-blue-500/30 rounded-full flex items-center justify-center mx-auto pulse-glowing">
+                <Scan className="w-7 h-7 text-blue-400" />
+                {/* Spinning Loader Ring */}
+                <div className="absolute inset-0 rounded-full border-2 border-t-transparent border-blue-500 animate-spin"></div>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-blue-300">Searching for Contactless Tag...</h3>
+                <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">
+                  Hold tag firmly against the back of your device.
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-sm font-semibold text-blue-300">Searching for Contactless Tag...</h3>
-              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                Hold tag firmly against the center of device back cover. Do not move during transmission.
-              </p>
+
+            {/* Diagnostic Terminal Logs */}
+            <div className="w-full bg-black/80 border border-gray-800/80 rounded-xl p-4 font-mono text-[10px] text-gray-400 text-left space-y-1.5 h-36 overflow-y-auto shadow-inner">
+              {scanLogs.map((log, index) => (
+                <div key={index} className="flex gap-2">
+                  <span className="text-blue-500 select-none">&gt;</span>
+                  <span className={index === scanLogs.length - 1 ? "text-gray-200 font-semibold animate-pulse" : ""}>{log}</span>
+                </div>
+              ))}
             </div>
           </div>
         )}
