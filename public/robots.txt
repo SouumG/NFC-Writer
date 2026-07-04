@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nfc.aiue.se/sitemap.xml

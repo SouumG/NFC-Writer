@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="100%" height="100%">
+  <!-- Deep rich black slate space -->
+  <rect width="1200" height="630" fill="#030712"/>
+  <circle cx="950" cy="315" r="300" fill="#1d4ed8" opacity="0.1" filter="blur(80px)" />
+  <circle cx="250" cy="315" r="200" fill="#3b82f6" opacity="0.05" filter="blur(60px)" />
+  
+  <!-- Grid Matrix overlays -->
+  <g stroke="#ffffff" stroke-width="0.2" opacity="0.04">
+    <line x1="0" y1="100" x2="1200" y2="100" />
+    <line x1="0" y1="200" x2="1200" y2="200" />
+    <line x1="0" y1="300" x2="1200" y2="300" />
+    <line x1="0" y1="400" x2="1200" y2="400" />
+    <line x1="0" y1="500" x2="1200" y2="500" />
+    <line x1="200" y1="0" x2="200" y2="630" />
+    <line x1="400" y1="0" x2="400" y2="630" />
+    <line x1="600" y1="0" x2="600" y2="630" />
+    <line x1="800" y1="0" x2="800" y2="630" />
+    <line x1="1000" y1="0" x2="1000" y2="630" />
+  </g>
+
+  <!-- Typography title -->
+  <text x="100" y="280" font-family="'Inter', system-ui, sans-serif" font-weight="900" font-size="74" fill="#ffffff" letter-spacing="-2">NFC Writer</text>
+  <text x="100" y="340" font-family="'Inter', system-ui, sans-serif" font-weight="500" font-size="24" fill="#3b82f6" letter-spacing="4" text-transform="uppercase">Professional Contactless Suite</text>
+  <text x="100" y="390" font-family="'Inter', system-ui, sans-serif" font-weight="400" font-size="18" fill="#9ca3af" max-width="600">Write, Read, Format, and Inspect physical NDEF tags entirely client-side.</text>
+
+  <!-- Holographic Antenna -->
+  <g transform="translate(850, 315)">
+    <circle cx="0" cy="0" r="180" fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="10 10" opacity="0.3" />
+    <circle cx="0" cy="0" r="140" fill="none" stroke="#3b82f6" stroke-width="4" stroke-dasharray="6 6" opacity="0.6" />
+    <circle cx="0" cy="0" r="100" fill="none" stroke="#60a5fa" stroke-width="6" opacity="0.8" />
+    <circle cx="0" cy="0" r="24" fill="#f3f4f6" />
+  </g>
+</svg>
