@@ -245,6 +245,18 @@ export default function ToolsView({ report, onRefreshDiagnostics }: ToolsViewPro
 
               <div className="flex items-start gap-3.5">
                 <div className="mt-0.5">
+                  {!report.isIframe ? <ShieldCheck className="w-5 h-5 text-emerald-400" /> : <ShieldAlert className="w-5 h-5 text-red-400" />}
+                </div>
+                <div>
+                  <h4 className="font-bold text-xs text-gray-200">Top-Level Context</h4>
+                  <p className="text-[11px] text-gray-400 mt-0.5 leading-relaxed">
+                    {!report.isIframe ? 'Running in a top-level window.' : 'Running inside an Iframe sandbox. Web NFC requires top-level navigation context.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3.5">
+                <div className="mt-0.5">
                   {report.isAndroid ? <ShieldCheck className="w-5 h-5 text-emerald-400" /> : <ShieldAlert className="w-5 h-5 text-amber-400" />}
                 </div>
                 <div>

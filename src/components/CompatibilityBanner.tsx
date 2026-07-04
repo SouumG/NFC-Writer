@@ -32,7 +32,7 @@ export default function CompatibilityBanner({ report, onNavigateToTools }: Compa
             NFC hardware communication is unavailable on this browser/device setup. You can still design templates, formulate payloads, and use coding tools, but direct tag scanning and writing requires physical hardware support.
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3 text-[11px]">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 mt-3 text-[11px]">
             <div className={`p-2 rounded-lg flex items-center gap-2 ${report.webNfcSupported ? 'bg-emerald-950/20 text-emerald-400 border border-emerald-500/10' : 'bg-red-950/20 text-red-400 border border-red-500/10'}`}>
               <Smartphone className="w-3.5 h-3.5" />
               <span>Web NFC: {report.webNfcSupported ? 'Available' : 'Unsupported'}</span>
@@ -45,11 +45,14 @@ export default function CompatibilityBanner({ report, onNavigateToTools }: Compa
               <Chrome className="w-3.5 h-3.5" />
               <span>Environment: {report.browserName} on {report.osName}</span>
             </div>
+            <div className={`p-2 rounded-lg flex items-center gap-2 ${!report.isIframe ? 'bg-emerald-950/20 text-emerald-400 border border-emerald-500/10' : 'bg-red-950/20 text-red-400 border border-red-500/10'}`}>
+              <AlertCircle className="w-3.5 h-3.5" />
+              <span>Frame: {report.isIframe ? 'Iframe Sandbox' : 'Top Level'}</span>
+            </div>
           </div>
-
           <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 items-center">
             <div className="text-[11px] text-gray-400">
-              <span className="font-medium text-amber-300">Quick Fix:</span> Use <strong className="text-white">Chrome Browser</strong> on an <strong className="text-white">Android Device</strong> over <strong className="text-white">HTTPS</strong>.
+              <span className="font-medium text-amber-300">Quick Fix:</span> Use <strong className="text-white">Chrome Browser</strong> on an <strong className="text-white">Android Device</strong> over <strong className="text-white">HTTPS</strong>{report.isIframe && <span className="text-white font-bold"> in a New Tab</span>}.
             </div>
             <button
               onClick={onNavigateToTools}

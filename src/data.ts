@@ -336,7 +336,8 @@ export function runCompatibilityCheck(): NFCCompatibilityReport {
   const language = navigator.language || 'en-US';
 
   // Check if fully supported
-  const readyToUse = hasNFC && isSecure && isAndroid && isChrome;
+  const isIframe = window.self !== window.top;
+  const readyToUse = hasNFC && isSecure && isAndroid && isChrome && !isIframe;
 
   return {
     webNfcSupported: hasNFC,
@@ -352,6 +353,7 @@ export function runCompatibilityCheck(): NFCCompatibilityReport {
     screenResolution,
     touchSupported,
     language,
+    isIframe,
     readyToUse,
   };
 }

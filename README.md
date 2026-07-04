@@ -1,4 +1,4 @@
-# NFC Writer — Contactless NDEF Developer Suite Pro (v1.2.2)
+# NFC Writer — Contactless NDEF Developer Suite Pro (v1.1.2)
 
 URL: [https://nfc.aiue.se/](https://nfc.aiue.se/)
 

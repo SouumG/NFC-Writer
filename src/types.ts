@@ -89,6 +89,7 @@ export interface NFCCompatibilityReport {
   screenResolution: string;
   touchSupported: boolean;
   language: string;
+  isIframe: boolean;
   readyToUse: boolean;
 }
 
