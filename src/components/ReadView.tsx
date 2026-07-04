@@ -64,82 +64,73 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
       await ndef.scan({ signal: abortControllerRef.current.signal });
 
       ndef.onreading = (event: any) => {
-        const serial = event.serialNumber || 'N/A';
-        setSerialNumber(serial);
-        
-        const parsedRecords = event.message.records.map((record: any) => {
-          let payloadText = '';
-          let bytes = new Uint8Array(0);
+        try {
+          const serial = event.serialNumber || 'N/A';
+          setSerialNumber(serial);
           
-          if (record.data) {
-            bytes = new Uint8Array(record.data.buffer, record.data.byteOffset, record.data.byteLength);
-          }
-
-          if (record.recordType === 'text') {
-            if (bytes.length > 0) {
-              const statusByte = bytes[0];
-              const langCodeLength = statusByte & 0x3F;
-              const isUtf16 = (statusByte & 0x80) !== 0;
-              if (1 + langCodeLength <= bytes.length) {
-                try {
-                  const decoder = new TextDecoder(isUtf16 ? 'utf-16' : 'utf-8');
-                  payloadText = decoder.decode(bytes.subarray(1 + langCodeLength));
-                } catch (e) {
-                  payloadText = new TextDecoder().decode(bytes);
-                }
-              } else {
-                payloadText = new TextDecoder().decode(bytes);
-              }
-            }
-          } else if (record.recordType === 'url') {
-            if (bytes.length > 0) {
-              const prefixCode = bytes[0];
-              const prefixes = [
-                '', 'http://www.', 'https://www.', 'http://', 'https://', 'tel:', 'mailto:',
-                'ftp://anonymous:anonymous@', 'ftp://ftp.', 'ftps://', 'sftp://', 'smb://',
-                'nfs://', 'ftp://', 'dav://', 'news:', 'telnet://', 'imap:', 'rtsp://', 'urn:',
-                'pop:', 'sip:', 'sips:', 'tftp:', 'btspp://', 'btl2cap://', 'btgoep://', 'tcpobex://',
-                'irdaobex://', 'file://', 'urn:epc:id:', 'urn:epc:tag:', 'urn:epc:pat:', 'urn:epc:raw:',
-                'urn:epc:', 'urn:nfc:'
-              ];
-              const prefix = prefixes[prefixCode] || '';
+          const recordsList = event.message?.records || [];
+          const parsedRecords = recordsList.map((record: any) => {
+            let payloadText = '';
+            let bytes = new Uint8Array(0);
+            
+            if (record.data) {
               try {
-                payloadText = prefix + new TextDecoder().decode(bytes.subarray(1));
+                bytes = new Uint8Array(record.data.buffer, record.data.byteOffset, record.data.byteLength);
               } catch (e) {
-                payloadText = new TextDecoder().decode(bytes);
+                console.error('Failed to parse DataView buffer:', e);
               }
             }
-          } else {
+
             try {
-              payloadText = new TextDecoder().decode(bytes);
+              if (record.recordType === 'text') {
+                const encoding = record.encoding || 'utf-8';
+                const decoder = new TextDecoder(encoding);
+                payloadText = decoder.decode(record.data);
+              } else if (record.recordType === 'url') {
+                const decoder = new TextDecoder('utf-8');
+                payloadText = decoder.decode(record.data);
+              } else {
+                // Try standard UTF-8 decode for MIME, JSON, etc.
+                const decoder = new TextDecoder('utf-8');
+                payloadText = decoder.decode(record.data);
+              }
             } catch (e) {
-              payloadText = 'Binary data';
+              try {
+                payloadText = new TextDecoder().decode(bytes);
+              } catch (err) {
+                payloadText = 'Binary data';
+              }
             }
-          }
 
-          return {
-            recordType: record.recordType,
-            mediaType: record.mediaType || '',
-            id: record.id || '',
-            rawData: bytes,
-            text: payloadText
-          };
-        });
+            return {
+              recordType: record.recordType,
+              mediaType: record.mediaType || '',
+              id: record.id || '',
+              rawData: bytes,
+              text: payloadText
+            };
+          });
 
-        setRecords(parsedRecords);
-        setScanState('success');
-        
-        // Save to History
-        onAddHistory({
-          operation: 'read',
-          status: 'success',
-          recordType: parsedRecords[0]?.recordType || 'NDEF Message',
-          recordsCount: parsedRecords.length,
-          summary: `Scanned tag (${serial})`,
-          details: JSON.stringify({ serialNumber: serial, records: parsedRecords.map(r => ({ recordType: r.recordType, text: r.text })) })
-        });
+          setRecords(parsedRecords);
+          setScanState('success');
+          
+          // Save to History
+          onAddHistory({
+            operation: 'read',
+            status: 'success',
+            recordType: parsedRecords[0]?.recordType || 'NDEF Message',
+            recordsCount: parsedRecords.length,
+            summary: `Scanned tag (${serial})`,
+            details: JSON.stringify({ serialNumber: serial, records: parsedRecords.map(r => ({ recordType: r.recordType, text: r.text })) })
+          });
 
-        stopScanning(true);
+          stopScanning(true);
+        } catch (onReadingErr: any) {
+          console.error("Error in onreading event handler:", onReadingErr);
+          setErrorMessage("Error parsing scanned tag: " + onReadingErr.message);
+          setScanState('error');
+          stopScanning(false);
+        }
       };
 
       ndef.onreadingerror = () => {
@@ -154,6 +145,11 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
       };
 
     } catch (err: any) {
+      if (err.name === 'AbortError') {
+        console.log('NFC scanning session stopped/cancelled.');
+        setScanState(prev => prev === 'success' ? 'success' : 'idle');
+        return;
+      }
       console.error(err);
       setErrorMessage(err.message || "Failed to start NFC scan.");
       setScanState('error');

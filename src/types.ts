@@ -12,6 +12,8 @@ export type NFCRecordType =
   | 'mime'
   | 'custom'
   | 'multi'
+  | 'erase'
+  | 'format'
   | 'aar'; // Android Application Record
 
 export interface NFCTemplate {

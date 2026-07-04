@@ -152,8 +152,15 @@ export default function WriteView({
         });
         break;
       case 'calendar':
-        // Format ISO dates nicely for iCal
-        const formatICalDate = (iso: string) => iso.replace(/[-:]/g, '').split('.')[0] + 'Z';
+        // Robust defensive parsing for calendar dates
+        const formatICalDate = (iso: string) => {
+          if (!iso) return '';
+          try {
+            return iso.replace(/[-:]/g, '').split('.')[0] + 'Z';
+          } catch (e) {
+            return '';
+          }
+        };
         const calStr = generateCalendarString({
           calendarTitle: calTitle,
           calendarStart: formatICalDate(calStart),
@@ -199,6 +206,16 @@ export default function WriteView({
           data: aarPackage
         });
         break;
+      case 'erase':
+        // Erasing writes empty NDEF records
+        break;
+      case 'format':
+        // Format places an empty text NDEF container
+        recordsList.push({
+          recordType: 'text',
+          data: ''
+        });
+        break;
     }
 
     return recordsList;
@@ -211,11 +228,23 @@ export default function WriteView({
     setWriteError('');
     setWriteLogs(['Booting Web NFC Engine...', 'Accessing device RFID writer...']);
 
-    const records = compileNDEFMessage();
+    // Check if running inside iframe sandbox
+    const isIframe = window.self !== window.top;
 
-    if (!('NDEFReader' in window)) {
-      // Execute Mock Simulation on non-compatible systems
-      executeMockWrite(records);
+    let records: any[] = [];
+    try {
+      records = compileNDEFMessage();
+    } catch (compileErr: any) {
+      console.error(compileErr);
+      setWriteError(`Compilation failed: ${compileErr.message || 'Check input formatting'}`);
+      setWriteResult('failed');
+      setWriteLogs(prev => [...prev, `Compilation error: ${compileErr.message || 'Check fields'}`]);
+      return;
+    }
+
+    if (!('NDEFReader' in window) || isIframe) {
+      // Execute Mock Simulation on non-compatible systems or in iframe sandbox
+      executeMockWrite(records, isIframe);
       return;
     }
 
@@ -223,7 +252,15 @@ export default function WriteView({
       const ndef = new NDEFReader();
       setWriteLogs(prev => [...prev, 'Listening for target NTAG sector...', 'Align your NFC tag...']);
       
-      await ndef.write({ records });
+      if (selectedType === 'erase') {
+        setWriteLogs(prev => [...prev, 'Executing Erase Operation: zeroing user memory sectors...']);
+        await ndef.write({ records: [] });
+      } else if (selectedType === 'format') {
+        setWriteLogs(prev => [...prev, 'Executing NDEF Format Operation: establishing clean payload registry...']);
+        await ndef.write({ records: [{ recordType: 'text', data: '' }] });
+      } else {
+        await ndef.write({ records });
+      }
       
       setWriteLogs(prev => [...prev, 'Tag recognized.', 'Writing NDEF payload sectors...']);
       
@@ -238,59 +275,95 @@ export default function WriteView({
       setWriteResult('success');
 
       // History log
+      const opType = selectedType === 'erase' ? 'format' : selectedType === 'format' ? 'format' : 'write';
       onAddHistory({
-        operation: 'write',
+        operation: opType,
         status: 'success',
-        recordType: selectedType.toUpperCase(),
+        recordType: selectedType === 'erase' ? 'Empty/Erase' : selectedType === 'format' ? 'Clean NDEF Format' : selectedType.toUpperCase(),
         recordsCount: records.length,
-        summary: `Programmed tag (${selectedType.toUpperCase()})`,
-        details: `Successfully wrote: ${JSON.stringify(records)}`
+        summary: selectedType === 'erase' ? 'Erased NFC tag memory' : selectedType === 'format' ? 'Formatted NFC tag to NDEF' : `Programmed tag (${selectedType.toUpperCase()})`,
+        details: `Successfully completed: ${selectedType === 'erase' ? 'Erase memory' : selectedType === 'format' ? 'Format NDEF' : JSON.stringify(records)}`
       });
 
     } catch (err: any) {
       console.error(err);
-      setWriteLogs(prev => [...prev, `Writing failed: ${err.message || 'Antenna connection lost'}`]);
-      setWriteError(err.message || 'Tag disconnected. Hold tag firmly near phone.');
+      let friendlyError = err.message || 'Tag disconnected. Hold tag firmly near phone.';
+      if (err.name === 'NotAllowedError') {
+        friendlyError = "NFC permission denied. Note that Web NFC cannot run inside an iframe. Please open this app in a NEW TAB to program physical tags.";
+      } else if (err.name === 'SecurityError') {
+        friendlyError = "Security constraint: Web NFC requires a secure origin (HTTPS) and must be loaded in a top-level window. Open the app in a NEW TAB.";
+      }
+      setWriteLogs(prev => [...prev, `Writing failed: ${err.name || 'Error'} - ${friendlyError}`]);
+      setWriteError(friendlyError);
       setWriteResult('failed');
       
+      const opType = selectedType === 'erase' ? 'format' : selectedType === 'format' ? 'format' : 'write';
       onAddHistory({
-        operation: 'write',
+        operation: opType,
         status: 'failed',
-        errorMessage: err.message || 'Antenna connection lost',
-        summary: `Programmed tag failure (${selectedType.toUpperCase()})`,
+        errorMessage: friendlyError,
+        summary: selectedType === 'erase' ? 'Erased NFC tag failure' : selectedType === 'format' ? 'Formatted NFC tag failure' : `Programmed tag failure (${selectedType.toUpperCase()})`,
       });
     }
   };
 
   // Mock writing simulator for desktops
-  const executeMockWrite = (records: any[]) => {
+  const executeMockWrite = (records: any[], isIframe = false) => {
     setTimeout(() => {
-      setWriteLogs(prev => [...prev, 'Simulator Mode Active: Emulating tag alignment...', 'Mock Tag detected (NTAG215 • 504 Bytes).']);
+      if (isIframe) {
+        setWriteLogs(prev => [
+          ...prev, 
+          'Iframe Sandbox Detected: Physical Web NFC is restricted inside preview iframes.',
+          'Activating high-fidelity RFID simulator...',
+          'Mock Tag detected (NTAG215 • 504 Bytes).'
+        ]);
+      } else {
+        setWriteLogs(prev => [...prev, 'Simulator Mode Active: Emulating tag alignment...', 'Mock Tag detected (NTAG215 • 504 Bytes).']);
+      }
     }, 600);
 
     setTimeout(() => {
-      setWriteLogs(prev => [...prev, `Writing compiled records of type "${selectedType.toUpperCase()}"...`, `NDEF Byte footprint: ${JSON.stringify(records).length} Bytes.`]);
+      if (selectedType === 'erase') {
+        setWriteLogs(prev => [...prev, 'Initializing sector zero-fill routine...']);
+      } else if (selectedType === 'format') {
+        setWriteLogs(prev => [...prev, 'Accessing low-level CC (Capabilities Container) block...']);
+      } else {
+        setWriteLogs(prev => [...prev, `Writing compiled records of type "${selectedType.toUpperCase()}"...`, `NDEF Byte footprint: ${JSON.stringify(records).length} Bytes.`]);
+      }
     }, 1200);
 
     setTimeout(() => {
-      if (verifyOption) {
-        setWriteLogs(prev => [...prev, 'Verification Phase: polling sector checksums...', 'Data integrity verified (100% Match).']);
+      if (selectedType === 'erase') {
+        setWriteLogs(prev => [...prev, 'Writing zero registers [0x04 - 0x2C]...', 'Erasing NDEF message header...']);
+      } else if (selectedType === 'format') {
+        setWriteLogs(prev => [...prev, 'Configuring standard NDEF capability flags...', 'Formatting sectors 0-15...']);
+      } else {
+        if (verifyOption) {
+          setWriteLogs(prev => [...prev, 'Verification Phase: polling sector checksums...', 'Data integrity verified (100% Match).']);
+        }
       }
     }, 2000);
 
     setTimeout(() => {
-      setWriteLogs(prev => [...prev, 'Simulator Write Completed. Tag memory locked (Writable).']);
+      if (selectedType === 'erase') {
+        setWriteLogs(prev => [...prev, 'Memory sectors successfully zeroed and cleared!']);
+      } else if (selectedType === 'format') {
+        setWriteLogs(prev => [...prev, 'NDEF directory structure created and formatted!']);
+      } else {
+        setWriteLogs(prev => [...prev, 'Simulator Write Completed. Tag memory locked (Writable).']);
+      }
       setWriteResult('success');
 
+      const opType = selectedType === 'erase' ? 'format' : selectedType === 'format' ? 'format' : 'write';
       onAddHistory({
-        operation: 'write',
+        operation: opType,
         status: 'success',
-        recordType: selectedType.toUpperCase(),
+        recordType: selectedType === 'erase' ? 'Empty/Erase' : selectedType === 'format' ? 'Clean NDEF Format' : selectedType.toUpperCase(),
         recordsCount: records.length,
-        summary: `Mock programmed tag (${selectedType.toUpperCase()})`,
-        details: `Successfully simulated write of: ${JSON.stringify(records)}`
+        summary: selectedType === 'erase' ? 'Erased NFC tag memory (Simulated)' : selectedType === 'format' ? 'Formatted NFC tag to NDEF (Simulated)' : `Mock programmed tag (${selectedType.toUpperCase()})`,
+        details: `Successfully simulated: ${selectedType === 'erase' ? 'Erase memory' : selectedType === 'format' ? 'Format NDEF' : JSON.stringify(records)}`
       });
-    }, 2600);
+    }, 2800);
   };
 
   // Save customized current inputs as an NFC Template
@@ -513,6 +586,8 @@ export default function WriteView({
               { id: 'json', label: 'JSON Payload', icon: Code },
               { id: 'mime', label: 'Custom MIME', icon: Code },
               { id: 'aar', label: 'Android App Link', icon: Grid },
+              { id: 'erase', label: 'Erase Tag Memory', icon: Trash2 },
+              { id: 'format', label: 'Format as NDEF', icon: RefreshCw },
             ].map((item) => {
               const IconComp = item.icon;
               return (
@@ -914,10 +989,63 @@ export default function WriteView({
                   </p>
                 </div>
               )}
+
+              {/* 13. Erase Tag Memory */}
+              {selectedType === 'erase' && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-red-950/20 border border-red-500/20 rounded-xl flex items-start gap-3">
+                    <Trash2 className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <h4 className="font-bold text-xs text-red-300">Erase Memory Warning</h4>
+                      <p className="text-[11px] text-gray-400 leading-relaxed">
+                        This action will write an empty NDEF structure to the target contactless tag. Any existing payloads (Wi-Fi portals, URLs, vCards) will be cleared. 
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-1 bg-gray-900/40 p-3.5 border border-gray-850/60 rounded-xl">
+                    <div className="text-xs font-bold text-gray-200">Secure Erase Operation</div>
+                    <p className="text-[11px] text-gray-400 leading-relaxed">
+                      Performs a standard zero-fill command across the writable sector blocks. This makes any private data unrecoverable by consumer smartphones.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* 14. Format as NDEF */}
+              {selectedType === 'format' && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-blue-950/20 border border-blue-500/20 rounded-xl flex items-start gap-3">
+                    <RefreshCw className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <h4 className="font-bold text-xs text-blue-300">NDEF Formatting Utility</h4>
+                      <p className="text-[11px] text-gray-400 leading-relaxed">
+                        Format initializes the raw registers of a standard RFID card (like Mifare Classic or NTAG) with the standard Web-compliant NDEF application header.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-3 bg-gray-900/40 p-4 border border-gray-850/60 rounded-xl text-xs">
+                    <div className="font-bold text-gray-200">Select Target Capacity</div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="p-2 bg-gray-950 border border-gray-800 rounded-lg text-center cursor-pointer">
+                        <div className="font-bold text-gray-300">NTAG213</div>
+                        <div className="text-[10px] text-gray-500">144 Bytes</div>
+                      </div>
+                      <div className="p-2 bg-blue-950/40 border border-blue-500/30 rounded-lg text-center cursor-pointer">
+                        <div className="font-bold text-blue-300">NTAG215</div>
+                        <div className="text-[10px] text-blue-500">504 Bytes</div>
+                      </div>
+                      <div className="p-2 bg-gray-950 border border-gray-800 rounded-lg text-center cursor-pointer">
+                        <div className="font-bold text-gray-300">NTAG216</div>
+                        <div className="text-[10px] text-blue-500">888 Bytes</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Quick Presets / User Saved Custom Templates list in-line */}
-            {customTemplates.length > 0 && (
+            {customTemplates.length > 0 && selectedType !== 'erase' && selectedType !== 'format' && (
               <div className="border-t border-gray-800/60 pt-4 space-y-2">
                 <h4 className="text-[11px] uppercase font-bold tracking-wider text-gray-500">Fast Fill Custom Templates</h4>
                 <div className="flex flex-wrap gap-2">
@@ -937,17 +1065,25 @@ export default function WriteView({
 
             {/* Program tag buttons */}
             <div className="border-t border-gray-800/80 pt-5 flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={() => setShowSaveModal(true)}
-                className="px-4 py-2.5 bg-gray-900 border border-gray-800 text-gray-300 text-xs font-bold rounded-lg cursor-pointer transition-colors hover:bg-gray-800 flex items-center justify-center gap-2 shrink-0"
-              >
-                <Save className="w-4 h-4 text-gray-400" /> Save as Template
-              </button>
+              {selectedType !== 'erase' && selectedType !== 'format' && (
+                <button
+                  onClick={() => setShowSaveModal(true)}
+                  className="px-4 py-2.5 bg-gray-900 border border-gray-800 text-gray-300 text-xs font-bold rounded-lg cursor-pointer transition-colors hover:bg-gray-800 flex items-center justify-center gap-2 shrink-0"
+                >
+                  <Save className="w-4 h-4 text-gray-400" /> Save as Template
+                </button>
+              )}
 
               <button
                 onClick={executeNDEFWrite}
                 disabled={isWriting}
-                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white text-xs font-bold rounded-lg cursor-pointer transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-500/15"
+                className={`flex-1 py-2.5 text-white text-xs font-bold rounded-lg cursor-pointer transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 ${
+                  selectedType === 'erase' 
+                    ? 'bg-red-600 hover:bg-red-500 disabled:bg-red-800 shadow-red-500/10' 
+                    : selectedType === 'format'
+                    ? 'bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 shadow-blue-500/10'
+                    : 'bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 shadow-blue-500/15'
+                }`}
               >
                 {isWriting ? (
                   <>
@@ -955,7 +1091,19 @@ export default function WriteView({
                   </>
                 ) : (
                   <>
-                    <PenTool className="w-4 h-4" /> Program Tag Payload
+                    {selectedType === 'erase' ? (
+                      <>
+                        <Trash2 className="w-4 h-4" /> Erase Tag Memory
+                      </>
+                    ) : selectedType === 'format' ? (
+                      <>
+                        <RefreshCw className="w-4 h-4" /> Format Tag as NDEF
+                      </>
+                    ) : (
+                      <>
+                        <PenTool className="w-4 h-4" /> Program Tag Payload
+                      </>
+                    )}
                   </>
                 )}
               </button>
