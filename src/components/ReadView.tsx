@@ -36,12 +36,14 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Stop scanning
-  const stopScanning = () => {
+  const stopScanning = (keepState = false) => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
     }
-    setScanState('idle');
+    if (!keepState) {
+      setScanState('idle');
+    }
   };
 
   // Real Web NFC Scan
@@ -79,7 +81,7 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
             recordType: record.recordType,
             mediaType: record.mediaType || '',
             id: record.id || '',
-            rawData: record.data ? new Uint8Array(record.data.buffer) : new Uint8Array(0),
+            rawData: record.data ? new Uint8Array(record.data.buffer, record.data.byteOffset, record.data.byteLength) : new Uint8Array(0),
             text: payloadText
           };
         });
@@ -97,7 +99,7 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
           details: JSON.stringify({ serialNumber: serial, records: parsedRecords.map(r => ({ recordType: r.recordType, text: r.text })) })
         });
 
-        stopScanning();
+        stopScanning(true);
       };
 
       ndef.onreadingerror = () => {
