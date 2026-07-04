@@ -38,6 +38,7 @@ import SettingsView from './components/SettingsView';
 import HelpView from './components/HelpView';
 import AboutView from './components/AboutView';
 import LegalView from './components/LegalView';
+import DocumentationView from './components/DocumentationView';
 
 export default function App() {
   // Page Routing (Synced with Location Hash)
@@ -110,7 +111,7 @@ export default function App() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
-      const validPages = ['home', 'read', 'write', 'templates', 'history', 'tools', 'settings', 'help', 'about', 'legal'];
+      const validPages = ['home', 'read', 'write', 'templates', 'history', 'tools', 'settings', 'help', 'about', 'legal', 'documentation'];
       if (validPages.includes(hash)) {
         setCurrentPage(hash);
       } else if (!hash) {
@@ -320,6 +321,7 @@ export default function App() {
               { id: 'read', label: 'Read NFC Tag', icon: Scan },
               { id: 'write', label: 'Write NFC Tag', icon: PenTool },
               { id: 'templates', label: 'NDEF Templates', icon: FileText },
+              { id: 'documentation', label: 'Documentation', icon: BookOpen },
               { id: 'tools', label: 'System Utilities', icon: Compass },
               { id: 'history', label: 'Activity Logs', icon: HistoryIcon },
               { id: 'settings', label: 'Preferences', icon: SettingsIcon },
@@ -451,6 +453,7 @@ export default function App() {
         {currentPage === 'help' && <HelpView />}
         {currentPage === 'about' && <AboutView />}
         {currentPage === 'legal' && <LegalView />}
+        {currentPage === 'documentation' && <DocumentationView />}
 
         {/* State: 404 fallback */}
         {currentPage === '404' && (

@@ -68,20 +68,60 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
         setSerialNumber(serial);
         
         const parsedRecords = event.message.records.map((record: any) => {
-          const decoder = new TextDecoder();
           let payloadText = '';
+          let bytes = new Uint8Array(0);
           
-          try {
-            payloadText = decoder.decode(record.data);
-          } catch (e) {
-            payloadText = 'Binary data';
+          if (record.data) {
+            bytes = new Uint8Array(record.data.buffer, record.data.byteOffset, record.data.byteLength);
+          }
+
+          if (record.recordType === 'text') {
+            if (bytes.length > 0) {
+              const statusByte = bytes[0];
+              const langCodeLength = statusByte & 0x3F;
+              const isUtf16 = (statusByte & 0x80) !== 0;
+              if (1 + langCodeLength <= bytes.length) {
+                try {
+                  const decoder = new TextDecoder(isUtf16 ? 'utf-16' : 'utf-8');
+                  payloadText = decoder.decode(bytes.subarray(1 + langCodeLength));
+                } catch (e) {
+                  payloadText = new TextDecoder().decode(bytes);
+                }
+              } else {
+                payloadText = new TextDecoder().decode(bytes);
+              }
+            }
+          } else if (record.recordType === 'url') {
+            if (bytes.length > 0) {
+              const prefixCode = bytes[0];
+              const prefixes = [
+                '', 'http://www.', 'https://www.', 'http://', 'https://', 'tel:', 'mailto:',
+                'ftp://anonymous:anonymous@', 'ftp://ftp.', 'ftps://', 'sftp://', 'smb://',
+                'nfs://', 'ftp://', 'dav://', 'news:', 'telnet://', 'imap:', 'rtsp://', 'urn:',
+                'pop:', 'sip:', 'sips:', 'tftp:', 'btspp://', 'btl2cap://', 'btgoep://', 'tcpobex://',
+                'irdaobex://', 'file://', 'urn:epc:id:', 'urn:epc:tag:', 'urn:epc:pat:', 'urn:epc:raw:',
+                'urn:epc:', 'urn:nfc:'
+              ];
+              const prefix = prefixes[prefixCode] || '';
+              try {
+                payloadText = prefix + new TextDecoder().decode(bytes.subarray(1));
+              } catch (e) {
+                payloadText = new TextDecoder().decode(bytes);
+              }
+            }
+          } else {
+            try {
+              payloadText = new TextDecoder().decode(bytes);
+            } catch (e) {
+              payloadText = 'Binary data';
+            }
           }
 
           return {
             recordType: record.recordType,
             mediaType: record.mediaType || '',
             id: record.id || '',
-            rawData: record.data ? new Uint8Array(record.data.buffer, record.data.byteOffset, record.data.byteLength) : new Uint8Array(0),
+            rawData: bytes,
             text: payloadText
           };
         });
@@ -261,15 +301,15 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
         </div>
       </div>
 
-      {/* Mock Scanning Injector for Desktop testing */}
+      {/* Hardware Sandbox & Emulator */}
       {!report.webNfcSupported && scanState === 'idle' && (
         <div className="bg-blue-950/20 border border-blue-500/20 rounded-xl p-5 space-y-3">
           <div className="flex items-center gap-2">
             <Play className="w-4 h-4 text-blue-400 animate-pulse" />
-            <h3 className="font-semibold text-xs text-blue-200">Interactive Mock NFC Simulator</h3>
+            <h3 className="font-semibold text-xs text-blue-200">RFID/NFC Hardware Sandbox & Emulator</h3>
           </div>
           <p className="text-[11px] text-gray-400">
-            Since your browser cannot access NFC antennas directly, click a simulation preset below to test how the diagnostic visualizer parses, decodes, and formats live NDEF tags:
+            Since direct radio communication requires physical device antennas, you can utilize this sandbox emulator to model how NDEF records are cataloged, decoded, and rendered on screen:
           </p>
           <div className="flex flex-wrap gap-2 pt-1">
             <button onClick={() => injectMockScan('wifi')} className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[10px] rounded-md font-medium text-gray-300 flex items-center gap-1 cursor-pointer transition-colors">
