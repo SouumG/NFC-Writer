@@ -336,7 +336,12 @@ export function runCompatibilityCheck(): NFCCompatibilityReport {
   const language = navigator.language || 'en-US';
 
   // Check if fully supported
-  const isIframe = window.self !== window.top;
+  let isIframe = false;
+  try {
+    isIframe = window.self !== window.top;
+  } catch (e) {
+    isIframe = true;
+  }
   const readyToUse = hasNFC && isSecure && isAndroid && isChrome && !isIframe;
 
   return {

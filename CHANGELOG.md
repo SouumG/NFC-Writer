@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2026-07-05
+
+### Added
+- **Preset Template Sync**: Enabled loading built-in or custom templates directly from the Templates screen into the Write screen's input fields.
+
+### Fixed
+- **Iframe Sandbox Compatibility**: Resolved critical `SecurityError` and DOM exception crashes by wrapping browser environment checks and `NDEFReader` operations in secure `try-catch` structures. This ensures the app operates smoothly in sandboxed `iframe` containers (such as the Google AI Studio live preview).
+
 ## [1.1.2] - 2026-07-04
 
 ### Changed

@@ -314,7 +314,7 @@ export default function App() {
               </div>
               <div className="text-left">
                 <div className="font-bold leading-none text-sm">NFC Writer</div>
-                <span className="text-[10px] text-gray-500 font-semibold font-mono tracking-wide mt-0.5 block">SUITE v1.1.2</span>
+                <span className="text-[10px] text-gray-500 font-semibold font-mono tracking-wide mt-0.5 block">SUITE v1.1.3</span>
               </div>
             </button>
           </div>
@@ -418,6 +418,8 @@ export default function App() {
             customTemplates={customTemplates}
             onAddHistory={handleAddHistory}
             onSaveTemplate={handleSaveTemplate}
+            selectedPreset={selectedPreset}
+            onClearPreset={() => setSelectedPreset(null)}
           />
         )}
 
@@ -483,7 +485,7 @@ export default function App() {
             &copy; 2026 NFC Writer. Hosted at: <a href="https://nfc.aiue.se/" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-blue-400 font-mono">https://nfc.aiue.se/</a>
           </div>
           <div className="flex items-center gap-3">
-            <span>Version v1.1.2 (Production)</span>
+            <span>Version v1.1.3 (Production)</span>
             <span>•</span>
             <button onClick={() => handleNavigate('legal')} className="hover:text-blue-400 cursor-pointer">Privacy & Terms</button>
           </div>

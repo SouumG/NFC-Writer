@@ -31,13 +31,17 @@ interface WriteViewProps {
   customTemplates: NFCTemplate[];
   onAddHistory: (entry: Omit<NFCHistoryEntry, 'id' | 'timestamp'>) => void;
   onSaveTemplate: (template: NFCTemplate) => void;
+  selectedPreset?: NFCTemplate | null;
+  onClearPreset?: () => void;
 }
 
 export default function WriteView({ 
   report, 
   customTemplates, 
   onAddHistory, 
-  onSaveTemplate 
+  onSaveTemplate,
+  selectedPreset,
+  onClearPreset
 }: WriteViewProps) {
   // Configured inputs state
   const [selectedType, setSelectedType] = useState<NFCRecordType>('text');
@@ -243,7 +247,12 @@ export default function WriteView({
     setWriteLogs(['Booting Web NFC Engine...', 'Accessing device RFID writer...']);
 
     // Check if running inside iframe sandbox
-    const isIframe = window.self !== window.top;
+    let isIframe = false;
+    try {
+      isIframe = window.self !== window.top;
+    } catch (e) {
+      isIframe = true;
+    }
 
     let records: any[] = [];
     try {
@@ -520,6 +529,16 @@ export default function WriteView({
     }
     if (tmpl.payload.aarPackageName) setAarPackage(tmpl.payload.aarPackageName);
   };
+
+  // Auto-fill template from preset state when redirected from Templates View
+  useEffect(() => {
+    if (selectedPreset) {
+      loadPresetTemplate(selectedPreset);
+      if (onClearPreset) {
+        onClearPreset();
+      }
+    }
+  }, [selectedPreset, onClearPreset]);
 
   const clearInputs = () => {
     setTextVal('');

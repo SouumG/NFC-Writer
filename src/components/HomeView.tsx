@@ -44,7 +44,7 @@ export default function HomeView({
         <div className="flex-1 space-y-4 text-center md:text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full text-xs font-semibold">
             <Flame className="w-3.5 h-3.5 animate-pulse" />
-            <span>NFC suite v1.1.2</span>
+            <span>NFC suite v1.1.3</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-blue-400">
             Write. Read. Format. <br />Contactless Tags.

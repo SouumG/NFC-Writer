@@ -58,21 +58,26 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
 
   // Real Web NFC Scan
   const startRealScan = async () => {
-    const isIframe = window.self !== window.top;
-    
-    if (isIframe) {
-      setErrorMessage("Web NFC is restricted inside iframes by the browser. Please use the Mock Scanner below, or open this app in a new top-level tab!");
-      setScanState('error');
-      return;
-    }
-
-    if (!('NDEFReader' in window)) {
-      setErrorMessage("Web NFC is not supported in this browser. Try our Mock Scanner to test!");
-      setScanState('error');
-      return;
-    }
-
     try {
+      let isIframe = false;
+      try {
+        isIframe = window.self !== window.top;
+      } catch (e) {
+        isIframe = true;
+      }
+      
+      if (isIframe) {
+        setErrorMessage("Web NFC is restricted inside iframes by the browser. Please use the Mock Scanner below, or open this app in a new top-level tab!");
+        setScanState('error');
+        return;
+      }
+
+      if (!('NDEFReader' in window)) {
+        setErrorMessage("Web NFC is not supported in this browser. Try our Mock Scanner to test!");
+        setScanState('error');
+        return;
+      }
+
       setScanState('scanning');
       setErrorMessage('');
       setScanLogs([
