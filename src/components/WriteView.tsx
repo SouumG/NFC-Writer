@@ -19,9 +19,7 @@ import {
   Grid,
   Info,
   RefreshCw,
-  Plus,
-  Cpu,
-  Radio
+  Plus
 } from 'lucide-react';
 import { NFCRecordType, NFCTemplate, NFCHistoryEntry, NFCCompatibilityReport } from '../types';
 import { generateId, generateVCard, generateWifiString, generateCalendarString } from '../data';
@@ -33,6 +31,7 @@ interface WriteViewProps {
   onSaveTemplate: (template: NFCTemplate) => void;
   selectedPreset?: NFCTemplate | null;
   onClearPreset?: () => void;
+  onShowToast: (message: string) => void;
 }
 
 export default function WriteView({ 
@@ -41,7 +40,8 @@ export default function WriteView({
   onAddHistory, 
   onSaveTemplate,
   selectedPreset,
-  onClearPreset
+  onClearPreset,
+  onShowToast
 }: WriteViewProps) {
   // Configured inputs state
   const [selectedType, setSelectedType] = useState<NFCRecordType>('text');
@@ -97,21 +97,12 @@ export default function WriteView({
   const [writeResult, setWriteResult] = useState<'success' | 'failed' | null>(null);
   const [writeLogs, setWriteLogs] = useState<string[]>([]);
   const [writeError, setWriteError] = useState('');
-  const [useSimulator, setUseSimulator] = useState(!report.readyToUse);
   
   const [verifyOption, setVerifyOption] = useState(true);
+
   const [templateName, setTemplateName] = useState('');
   const [templateDesc, setTemplateDesc] = useState('');
   const [showSaveModal, setShowSaveModal] = useState(false);
-
-  const timeoutIdsRef = useRef<any[]>([]);
-
-  // Clear all pending mock simulation timeouts on unmount to prevent crashes
-  useEffect(() => {
-    return () => {
-      timeoutIdsRef.current.forEach(id => clearTimeout(id));
-    };
-  }, []);
 
   // Generate NDEF message array based on selected type
   const compileNDEFMessage = () => {
@@ -265,9 +256,13 @@ export default function WriteView({
       return;
     }
 
-    if (useSimulator || !('NDEFReader' in window) || isIframe) {
-      // Execute Mock Simulation on non-compatible systems or in iframe sandbox
-      executeMockWrite(records, isIframe);
+    if (!('NDEFReader' in window) || isIframe) {
+      const msg = isIframe
+        ? "Physical Web NFC is restricted inside preview iframes. Please open the app in a NEW TAB to program tags."
+        : "Web NFC is not supported or disabled on this system. Direct physical Web NFC access is only available on compatible mobile devices (e.g. Android using Google Chrome) over secure HTTPS, operating outside of sandboxed frames.";
+      setWriteError(msg);
+      setWriteResult('failed');
+      setWriteLogs(prev => [...prev, `Hardware access denied: ${msg}`]);
       return;
     }
 
@@ -292,6 +287,11 @@ export default function WriteView({
         // Simulating verification briefly
         await new Promise(r => setTimeout(r, 800));
         setWriteLogs(prev => [...prev, 'Verification completed. Checksum match.']);
+      }
+
+      // Haptic feedback (Vibrate instead of sound)
+      if (navigator.vibrate) {
+        navigator.vibrate(200);
       }
 
       setWriteLogs(prev => [...prev, 'Successfully programmed tag!']);
@@ -328,68 +328,6 @@ export default function WriteView({
         summary: selectedType === 'erase' ? 'Erased NFC tag failure' : selectedType === 'format' ? 'Formatted NFC tag failure' : `Programmed tag failure (${selectedType.toUpperCase()})`,
       });
     }
-  };
-
-  // Mock writing simulator for desktops
-  const executeMockWrite = (records: any[], isIframe = false) => {
-    const t1 = setTimeout(() => {
-      const tagDesc = isCustomFormatSize ? `Custom • ${formatMemorySize || 0} Bytes` : `NTAG • ${formatMemorySize} Bytes`;
-      if (isIframe) {
-        setWriteLogs(prev => [
-          ...prev, 
-          'Iframe Sandbox Detected: Physical Web NFC is restricted inside preview iframes.',
-          'Activating high-fidelity RFID simulator...',
-          `Mock Tag detected (${tagDesc}).`
-        ]);
-      } else {
-        setWriteLogs(prev => [...prev, 'Simulator Mode Active: Emulating tag alignment...', `Mock Tag detected (${tagDesc}).`]);
-      }
-    }, 600);
-
-    const t2 = setTimeout(() => {
-      if (selectedType === 'erase') {
-        setWriteLogs(prev => [...prev, 'Initializing sector zero-fill routine...']);
-      } else if (selectedType === 'format') {
-        setWriteLogs(prev => [...prev, 'Accessing low-level CC (Capabilities Container) block...']);
-      } else {
-        setWriteLogs(prev => [...prev, `Writing compiled records of type "${selectedType.toUpperCase()}"...`, `NDEF Byte footprint: ${JSON.stringify(records).length} Bytes.`]);
-      }
-    }, 1200);
-
-    const t3 = setTimeout(() => {
-      if (selectedType === 'erase') {
-        setWriteLogs(prev => [...prev, 'Writing zero registers [0x04 - 0x2C]...', 'Erasing NDEF message header...']);
-      } else if (selectedType === 'format') {
-        setWriteLogs(prev => [...prev, 'Configuring standard NDEF capability flags...', 'Formatting sectors 0-15...']);
-      } else {
-        if (verifyOption) {
-          setWriteLogs(prev => [...prev, 'Verification Phase: polling sector checksums...', 'Data integrity verified (100% Match).']);
-        }
-      }
-    }, 2000);
-
-    const t4 = setTimeout(() => {
-      if (selectedType === 'erase') {
-        setWriteLogs(prev => [...prev, 'Memory sectors successfully zeroed and cleared!']);
-      } else if (selectedType === 'format') {
-        setWriteLogs(prev => [...prev, 'NDEF directory structure created and formatted!']);
-      } else {
-        setWriteLogs(prev => [...prev, 'Simulator Write Completed. Tag memory locked (Writable).']);
-      }
-      setWriteResult('success');
-
-      const opType = selectedType === 'erase' ? 'format' : selectedType === 'format' ? 'format' : 'write';
-      onAddHistory({
-        operation: opType,
-        status: 'success',
-        recordType: selectedType === 'erase' ? 'Empty/Erase' : selectedType === 'format' ? 'Clean NDEF Format' : selectedType.toUpperCase(),
-        recordsCount: records.length,
-        summary: selectedType === 'erase' ? 'Erased NFC tag memory (Simulated)' : selectedType === 'format' ? 'Formatted NFC tag to NDEF (Simulated)' : `Mock programmed tag (${selectedType.toUpperCase()})`,
-        details: `Successfully simulated: ${selectedType === 'erase' ? 'Erase memory' : selectedType === 'format' ? 'Format NDEF' : JSON.stringify(records)}`
-      });
-    }, 2800);
-
-    timeoutIdsRef.current.push(t1, t2, t3, t4);
   };
 
   // Save customized current inputs as an NFC Template
@@ -464,6 +402,7 @@ export default function WriteView({
     setShowSaveModal(false);
     setTemplateName('');
     setTemplateDesc('');
+    onShowToast("Template saved successfully!");
   };
 
   // Fast-fill inputs from a user template or preset
@@ -581,34 +520,6 @@ export default function WriteView({
 
         {/* Action Toggle controls */}
         <div className="flex flex-wrap items-center gap-3 text-xs w-full sm:w-auto">
-          {/* Mode Selector */}
-          <div className="bg-gray-950 p-1 rounded-lg border border-gray-800 flex items-center gap-1">
-            <button
-              onClick={() => setUseSimulator(false)}
-              className={`px-2.5 py-1 rounded-md font-semibold text-[11px] transition-all flex items-center gap-1 cursor-pointer ${
-                !useSimulator 
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-gray-400 hover:text-gray-200'
-              }`}
-              title="Communicate with actual physical NFC hardware via the Web NFC API"
-            >
-              <Cpu className="w-3.5 h-3.5" />
-              <span>Hardware</span>
-            </button>
-            <button
-              onClick={() => setUseSimulator(true)}
-              className={`px-2.5 py-1 rounded-md font-semibold text-[11px] transition-all flex items-center gap-1 cursor-pointer ${
-                useSimulator 
-                  ? 'bg-amber-600 text-white' 
-                  : 'text-gray-400 hover:text-gray-200'
-              }`}
-              title="Emulate NDEF transmission in a software simulation environment"
-            >
-              <Radio className="w-3.5 h-3.5" />
-              <span>Simulator</span>
-            </button>
-          </div>
-
           <label className="flex items-center gap-2 text-gray-300">
             <input 
               type="checkbox" 
@@ -619,6 +530,7 @@ export default function WriteView({
             <span>Verify writes</span>
           </label>
           <button
+            type="button"
             onClick={clearInputs}
             className="px-3 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[11px] font-semibold text-gray-400 hover:text-gray-200 rounded-lg transition-colors cursor-pointer"
           >
@@ -626,6 +538,19 @@ export default function WriteView({
           </button>
         </div>
       </div>
+
+      {/* Hardware Compatibility Alert */}
+      {!report.readyToUse && (
+        <div className="bg-red-950/20 border border-red-500/20 rounded-xl p-5 space-y-2">
+          <div className="flex items-center gap-2 text-red-400">
+            <AlertCircle className="w-4 h-4" />
+            <h3 className="font-semibold text-xs text-red-200">Hardware Compatibility Alert: NFC Not Available</h3>
+          </div>
+          <p className="text-[11px] text-gray-400 leading-relaxed">
+            Contactless writing/erasing is restricted or unsupported in this browser environment. Direct physical Web NFC access is only available on compatible mobile devices (e.g. Android using Google Chrome) over secure HTTPS, operating outside of sandboxed frames.
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         
@@ -1090,22 +1015,22 @@ export default function WriteView({
                   <div className="space-y-3 bg-gray-900/40 p-4 border border-gray-850/60 rounded-xl text-xs">
                     <div className="font-bold text-gray-200">Select Target Capacity</div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      <div onClick={() => { setFormatMemorySize('144'); setIsCustomFormatSize(false); }} className={`p-2 border rounded-lg text-center cursor-pointer transition-colors ${!isCustomFormatSize && formatMemorySize === '144' ? 'bg-blue-950/40 border-blue-500/30' : 'bg-gray-950 border-gray-800 hover:bg-gray-800'}`}>
+                      <button type="button" onClick={() => { setFormatMemorySize('144'); setIsCustomFormatSize(false); }} className={`p-2 border rounded-lg text-center cursor-pointer transition-colors ${!isCustomFormatSize && formatMemorySize === '144' ? 'bg-blue-950/40 border-blue-500/30' : 'bg-gray-950 border-gray-800 hover:bg-gray-800'}`}>
                         <div className={`font-bold ${!isCustomFormatSize && formatMemorySize === '144' ? 'text-blue-300' : 'text-gray-300'}`}>NTAG213</div>
                         <div className={`text-[10px] ${!isCustomFormatSize && formatMemorySize === '144' ? 'text-blue-500' : 'text-gray-500'}`}>144 Bytes</div>
-                      </div>
-                      <div onClick={() => { setFormatMemorySize('504'); setIsCustomFormatSize(false); }} className={`p-2 border rounded-lg text-center cursor-pointer transition-colors ${!isCustomFormatSize && formatMemorySize === '504' ? 'bg-blue-950/40 border-blue-500/30' : 'bg-gray-950 border-gray-800 hover:bg-gray-800'}`}>
+                      </button>
+                      <button type="button" onClick={() => { setFormatMemorySize('504'); setIsCustomFormatSize(false); }} className={`p-2 border rounded-lg text-center cursor-pointer transition-colors ${!isCustomFormatSize && formatMemorySize === '504' ? 'bg-blue-950/40 border-blue-500/30' : 'bg-gray-950 border-gray-800 hover:bg-gray-800'}`}>
                         <div className={`font-bold ${!isCustomFormatSize && formatMemorySize === '504' ? 'text-blue-300' : 'text-gray-300'}`}>NTAG215</div>
                         <div className={`text-[10px] ${!isCustomFormatSize && formatMemorySize === '504' ? 'text-blue-500' : 'text-gray-500'}`}>504 Bytes</div>
-                      </div>
-                      <div onClick={() => { setFormatMemorySize('888'); setIsCustomFormatSize(false); }} className={`p-2 border rounded-lg text-center cursor-pointer transition-colors ${!isCustomFormatSize && formatMemorySize === '888' ? 'bg-blue-950/40 border-blue-500/30' : 'bg-gray-950 border-gray-800 hover:bg-gray-800'}`}>
+                      </button>
+                      <button type="button" onClick={() => { setFormatMemorySize('888'); setIsCustomFormatSize(false); }} className={`p-2 border rounded-lg text-center cursor-pointer transition-colors ${!isCustomFormatSize && formatMemorySize === '888' ? 'bg-blue-950/40 border-blue-500/30' : 'bg-gray-950 border-gray-800 hover:bg-gray-800'}`}>
                         <div className={`font-bold ${!isCustomFormatSize && formatMemorySize === '888' ? 'text-blue-300' : 'text-gray-300'}`}>NTAG216</div>
                         <div className={`text-[10px] ${!isCustomFormatSize && formatMemorySize === '888' ? 'text-blue-500' : 'text-gray-500'}`}>888 Bytes</div>
-                      </div>
-                      <div onClick={() => setIsCustomFormatSize(true)} className={`p-2 border rounded-lg text-center cursor-pointer flex flex-col justify-center transition-colors ${isCustomFormatSize ? 'bg-blue-950/40 border-blue-500/30' : 'bg-gray-950 border-gray-800 hover:bg-gray-800'}`}>
+                      </button>
+                      <button type="button" onClick={() => setIsCustomFormatSize(true)} className={`p-2 border rounded-lg text-center cursor-pointer flex flex-col justify-center transition-colors ${isCustomFormatSize ? 'bg-blue-950/40 border-blue-500/30' : 'bg-gray-950 border-gray-800 hover:bg-gray-800'}`}>
                         <div className={`font-bold ${isCustomFormatSize ? 'text-blue-300' : 'text-gray-300'}`}>Custom</div>
                         <div className={`text-[10px] ${isCustomFormatSize ? 'text-blue-500' : 'text-gray-500'}`}>Any Size</div>
-                      </div>
+                      </button>
                     </div>
                     {isCustomFormatSize && (
                       <div className="mt-3">
@@ -1147,6 +1072,7 @@ export default function WriteView({
             <div className="border-t border-gray-800/80 pt-5 flex flex-col sm:flex-row gap-3">
               {selectedType !== 'erase' && selectedType !== 'format' && (
                 <button
+                  type="button"
                   onClick={() => setShowSaveModal(true)}
                   className="px-4 py-2.5 bg-gray-900 border border-gray-800 text-gray-300 text-xs font-bold rounded-lg cursor-pointer transition-colors hover:bg-gray-800 flex items-center justify-center gap-2 shrink-0"
                 >
@@ -1155,10 +1081,13 @@ export default function WriteView({
               )}
 
               <button
+                type="button"
                 onClick={executeNDEFWrite}
-                disabled={isWriting}
+                disabled={isWriting || !report.readyToUse}
                 className={`flex-1 py-2.5 text-white text-xs font-bold rounded-lg cursor-pointer transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 ${
-                  selectedType === 'erase' 
+                  !report.readyToUse
+                    ? 'bg-gray-800 border border-gray-700 text-gray-500 cursor-not-allowed opacity-60'
+                    : selectedType === 'erase' 
                     ? 'bg-red-600 hover:bg-red-500 disabled:bg-red-800 shadow-red-500/10' 
                     : selectedType === 'format'
                     ? 'bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 shadow-blue-500/10'
@@ -1193,7 +1122,7 @@ export default function WriteView({
         </div>
       </div>
 
-      {/* Writing Progress Modal Simulation / Overlay */}
+      {/* Writing Progress Modal Overlay */}
       {isWriting && (
         <div id="write-progress-overlay" className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-md bg-gray-950 border border-gray-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden space-y-4">
@@ -1243,14 +1172,16 @@ export default function WriteView({
               <div className="flex gap-3">
                 {writeResult !== null && (
                   <button
+                    type="button"
                     onClick={() => setIsWriting(false)}
-                    className="w-full py-2 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-xs font-semibold text-gray-200 rounded-lg cursor-pointer transition-colors"
+                    className="w-full py-2 bg-gray-900 hover:bg-gray-850 border border-gray-850 text-xs font-semibold text-gray-200 rounded-lg cursor-pointer transition-colors"
                   >
                     Close Terminal
                   </button>
                 )}
                 {writeResult === 'failed' && (
                   <button
+                    type="button"
                     onClick={executeNDEFWrite}
                     className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white rounded-lg cursor-pointer transition-colors"
                   >
@@ -1258,23 +1189,6 @@ export default function WriteView({
                   </button>
                 )}
               </div>
-              {writeResult === 'failed' && !useSimulator && (
-                <button
-                  onClick={() => {
-                    setUseSimulator(true);
-                    setTimeout(() => {
-                      setIsWriting(true);
-                      setWriteResult(null);
-                      setWriteError('');
-                      setWriteLogs(['Booting Web NFC Engine (Simulator)...', 'Accessing simulated RFID writer...']);
-                      executeMockWrite(compileNDEFMessage(), false);
-                    }, 100);
-                  }}
-                  className="w-full py-2 bg-amber-600 hover:bg-amber-500 text-xs font-semibold text-white rounded-lg cursor-pointer transition-colors"
-                >
-                  Switch to Simulator Mode &amp; Program Tag
-                </button>
-              )}
             </div>
           </div>
         </div>

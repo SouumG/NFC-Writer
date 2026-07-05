@@ -11,7 +11,8 @@ import {
   Compass, 
   Info,
   Layers,
-  Plus
+  Plus,
+  RefreshCw
 } from 'lucide-react';
 import { NFCTemplate, NFCRecordType } from '../types';
 import { BUILT_IN_TEMPLATES } from '../data';
@@ -22,6 +23,7 @@ interface TemplatesViewProps {
   onSaveTemplate: (template: NFCTemplate) => void;
   onDeleteTemplate: (id: string) => void;
   onImportTemplates: (templates: NFCTemplate[]) => void;
+  onShowToast: (message: string) => void;
 }
 
 export default function TemplatesView({ 
@@ -29,10 +31,12 @@ export default function TemplatesView({
   onSelectTemplate, 
   onSaveTemplate, 
   onDeleteTemplate, 
-  onImportTemplates 
+  onImportTemplates,
+  onShowToast
 }: TemplatesViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [isExporting, setIsExporting] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,16 +63,28 @@ export default function TemplatesView({
   // Export templates as JSON file downloads
   const handleExportTemplates = () => {
     if (customTemplates.length === 0) {
-      alert("No user custom templates available to export. Create templates in the Write section first.");
+      onShowToast("No user custom templates available to export.");
       return;
     }
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(customTemplates, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", "nfc_writer_custom_templates.json");
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
+    setIsExporting(true);
+    onShowToast("Compiling custom templates to JSON...");
+    
+    setTimeout(() => {
+      try {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(customTemplates, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "nfc_writer_custom_templates.json");
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+        onShowToast("Download started! Saved nfc_writer_custom_templates.json");
+      } catch (err) {
+        onShowToast("Failed to export custom templates.");
+      } finally {
+        setIsExporting(false);
+      }
+    }, 900);
   };
 
   // Import templates from local JSON files
@@ -85,15 +101,15 @@ export default function TemplatesView({
           const valid = imported.every(item => item.id && item.name && item.type && item.payload);
           if (valid) {
             onImportTemplates(imported);
-            alert(`Successfully imported ${imported.length} custom templates!`);
+            onShowToast(`Successfully imported ${imported.length} custom templates!`);
           } else {
-            alert("JSON Schema mismatch: Templates must have 'id', 'name', 'type', and 'payload' properties.");
+            onShowToast("JSON Schema mismatch: Missing required template keys.");
           }
         } else {
-          alert("Import failed: JSON must represent a structured array of templates.");
+          onShowToast("Import failed: JSON must represent an array of templates.");
         }
       } catch (err) {
-        alert("Parsing Error: Invalid JSON text format inside the template file.");
+        onShowToast("Parsing Error: Invalid JSON template file.");
       }
     };
     reader.readAsText(file);
@@ -129,6 +145,7 @@ export default function TemplatesView({
           />
           
           <button
+            type="button"
             onClick={triggerFileSelector}
             className="flex-1 md:flex-none px-4 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[11px] font-bold text-gray-300 rounded-lg cursor-pointer flex items-center justify-center gap-1.5 transition-colors"
           >
@@ -136,10 +153,17 @@ export default function TemplatesView({
           </button>
 
           <button
+            type="button"
+            disabled={isExporting}
             onClick={handleExportTemplates}
-            className="flex-1 md:flex-none px-4 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[11px] font-bold text-gray-300 rounded-lg cursor-pointer flex items-center justify-center gap-1.5 transition-colors"
+            className={`flex-1 md:flex-none px-4 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[11px] font-bold text-gray-300 rounded-lg cursor-pointer flex items-center justify-center gap-1.5 transition-all ${isExporting ? 'opacity-50 cursor-wait' : ''}`}
           >
-            <Download className="w-3.5 h-3.5" /> Export Custom
+            {isExporting ? (
+              <RefreshCw className="w-3.5 h-3.5 text-blue-400 animate-spin" />
+            ) : (
+              <Download className="w-3.5 h-3.5 text-blue-400" />
+            )}
+            <span>{isExporting ? 'Exporting...' : 'Export Custom'}</span>
           </button>
         </div>
       </div>
@@ -160,6 +184,7 @@ export default function TemplatesView({
         <div className="flex gap-1.5 overflow-x-auto w-full sm:w-auto pb-1.5 sm:pb-0 scrollbar-none">
           {categories.slice(0, 4).map(cat => (
             <button
+              type="button"
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={`px-3 py-1.5 text-[10px] font-semibold rounded-lg shrink-0 cursor-pointer border transition-all ${selectedCategory === cat ? 'bg-blue-600 text-white border-blue-500' : 'bg-gray-900/40 text-gray-400 border-gray-800/80 hover:text-gray-200'}`}
@@ -208,7 +233,8 @@ export default function TemplatesView({
                   
                   {!tmpl.isBuiltIn && (
                     <button
-                      onClick={() => onDeleteTemplate(tmpl.id)}
+                      type="button"
+                      onClick={() => { onDeleteTemplate(tmpl.id); onShowToast("Template deleted successfully!"); }}
                       className="p-1.5 hover:bg-red-950/20 text-gray-500 hover:text-red-400 rounded-md transition-colors cursor-pointer"
                       title="Delete Custom Template"
                     >
@@ -226,7 +252,8 @@ export default function TemplatesView({
               <div className="pt-3 border-t border-gray-900/60 flex items-center justify-between text-xs">
                 <span className="text-gray-500 font-medium text-[10px]">{tmpl.isBuiltIn ? 'System Template' : 'User Template'}</span>
                 <button
-                  onClick={() => onSelectTemplate(tmpl)}
+                  type="button"
+                  onClick={() => { onSelectTemplate(tmpl); onShowToast("Template loaded into Write view!"); }}
                   className="text-blue-400 hover:text-blue-300 font-semibold cursor-pointer flex items-center gap-1"
                 >
                   <span>Load Template</span>

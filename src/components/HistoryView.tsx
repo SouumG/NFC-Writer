@@ -10,7 +10,8 @@ import {
   Eye, 
   X,
   FileSpreadsheet,
-  Info
+  Info,
+  RefreshCw
 } from 'lucide-react';
 import { NFCHistoryEntry } from '../types';
 
@@ -19,13 +20,15 @@ interface HistoryViewProps {
   onToggleFavorite: (id: string) => void;
   onDeleteEntry: (id: string) => void;
   onClearHistory: () => void;
+  onShowToast: (message: string) => void;
 }
 
 export default function HistoryView({ 
   history, 
   onToggleFavorite, 
   onDeleteEntry, 
-  onClearHistory 
+  onClearHistory,
+  onShowToast
 }: HistoryViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [opFilter, setOpFilter] = useState<string>('All');
@@ -33,6 +36,10 @@ export default function HistoryView({
   
   // Modal for displaying details
   const [activeDetails, setActiveDetails] = useState<NFCHistoryEntry | null>(null);
+
+  // Export progress states
+  const [isExportingCSV, setIsExportingCSV] = useState(false);
+  const [isExportingJSON, setIsExportingJSON] = useState(false);
 
   // Filter list
   const filteredHistory = history.filter(item => {
@@ -49,41 +56,64 @@ export default function HistoryView({
   // Export as JSON file
   const handleExportJSON = () => {
     if (history.length === 0) return;
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(history, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", "nfc_writer_activity_history.json");
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
+    setIsExportingJSON(true);
+    onShowToast("Generating activity logs JSON archive...");
+    
+    setTimeout(() => {
+      try {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(history, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "nfc_writer_activity_history.json");
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+        onShowToast("Download started! Saved nfc_writer_activity_history.json");
+      } catch (err) {
+        onShowToast("Failed to compile history JSON.");
+      } finally {
+        setIsExportingJSON(false);
+      }
+    }, 900);
   };
 
   // Export as CSV file
   const handleExportCSV = () => {
     if (history.length === 0) return;
+    setIsExportingCSV(true);
+    onShowToast("Converting database index to CSV structures...");
     
-    const headers = ['ID', 'Timestamp', 'Operation', 'Status', 'Record Type', 'Summary', 'Error Message'];
-    const rows = history.map(item => [
-      item.id,
-      new Date(item.timestamp).toISOString(),
-      item.operation,
-      item.status,
-      item.recordType || 'N/A',
-      `"${item.summary.replace(/"/g, '""')}"`,
-      item.errorMessage ? `"${item.errorMessage.replace(/"/g, '""')}"` : ''
-    ]);
+    setTimeout(() => {
+      try {
+        const headers = ['ID', 'Timestamp', 'Operation', 'Status', 'Record Type', 'Summary', 'Error Message'];
+        const rows = history.map(item => [
+          item.id,
+          new Date(item.timestamp).toISOString(),
+          item.operation,
+          item.status,
+          item.recordType || 'N/A',
+          `"${item.summary.replace(/"/g, '""')}"`,
+          item.errorMessage ? `"${item.errorMessage.replace(/"/g, '""')}"` : ''
+        ]);
 
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + headers.join(",") + "\n" 
-      + rows.map(e => e.join(",")).join("\n");
+        const csvContent = "data:text/csv;charset=utf-8," 
+          + headers.join(",") + "\n" 
+          + rows.map(e => e.join(",")).join("\n");
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "nfc_writer_history_logs.csv");
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "nfc_writer_history_logs.csv");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        onShowToast("Download started! Saved nfc_writer_history_logs.csv");
+      } catch (err) {
+        onShowToast("Failed to compile history CSV.");
+      } finally {
+        setIsExportingCSV(false);
+      }
+    }, 900);
   };
 
   return (
@@ -105,23 +135,39 @@ export default function HistoryView({
         {history.length > 0 && (
           <div className="flex flex-wrap gap-2 w-full md:w-auto">
             <button
+              type="button"
+              disabled={isExportingCSV || isExportingJSON}
               onClick={handleExportCSV}
-              className="flex-1 md:flex-none px-3.5 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[11px] font-bold text-gray-300 rounded-lg cursor-pointer flex items-center justify-center gap-1.5 transition-colors"
+              className={`flex-1 md:flex-none px-3.5 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[11px] font-bold text-gray-300 rounded-lg cursor-pointer flex items-center justify-center gap-1.5 transition-all ${isExportingCSV ? 'opacity-50 cursor-wait' : ''}`}
             >
-              <FileSpreadsheet className="w-4 h-4 text-emerald-400" /> Export CSV
+              {isExportingCSV ? (
+                <RefreshCw className="w-3.5 h-3.5 text-emerald-400 animate-spin" />
+              ) : (
+                <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+              )}
+              <span>{isExportingCSV ? 'Processing...' : 'Export CSV'}</span>
             </button>
 
             <button
+              type="button"
+              disabled={isExportingCSV || isExportingJSON}
               onClick={handleExportJSON}
-              className="flex-1 md:flex-none px-3.5 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[11px] font-bold text-gray-300 rounded-lg cursor-pointer flex items-center justify-center gap-1.5 transition-colors"
+              className={`flex-1 md:flex-none px-3.5 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[11px] font-bold text-gray-300 rounded-lg cursor-pointer flex items-center justify-center gap-1.5 transition-all ${isExportingJSON ? 'opacity-50 cursor-wait' : ''}`}
             >
-              <Download className="w-4 h-4 text-blue-400" /> Export JSON
+              {isExportingJSON ? (
+                <RefreshCw className="w-3.5 h-3.5 text-blue-400 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4 text-blue-400" />
+              )}
+              <span>{isExportingJSON ? 'Compiling...' : 'Export JSON'}</span>
             </button>
 
             <button
+              type="button"
               onClick={() => {
                 if(confirm("Are you sure you want to purge all local activity history logs permanently? This cannot be undone.")) {
                   onClearHistory();
+                  onShowToast("Activity logs purged successfully.");
                 }
               }}
               className="flex-1 md:flex-none px-3.5 py-2 bg-red-950/20 hover:bg-red-950/40 border border-red-500/20 hover:border-red-500/30 text-[11px] font-bold text-red-400 rounded-lg cursor-pointer flex items-center justify-center gap-1.5 transition-colors"
@@ -223,6 +269,7 @@ export default function HistoryView({
                 <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
                   {item.details && (
                     <button
+                      type="button"
                       onClick={() => setActiveDetails(item)}
                       className="p-1.5 hover:bg-gray-850 text-gray-400 hover:text-blue-400 rounded-md transition-colors cursor-pointer"
                       title="Inspect NDEF Data"
@@ -232,7 +279,8 @@ export default function HistoryView({
                   )}
 
                   <button
-                    onClick={() => onToggleFavorite(item.id)}
+                    type="button"
+                    onClick={() => { onToggleFavorite(item.id); onShowToast(item.isFavorite ? "Removed from favorites" : "Added to favorites"); }}
                     className="p-1.5 hover:bg-gray-850 rounded-md transition-colors cursor-pointer"
                     title="Toggle Favorite"
                   >
@@ -240,7 +288,8 @@ export default function HistoryView({
                   </button>
 
                   <button
-                    onClick={() => onDeleteEntry(item.id)}
+                    type="button"
+                    onClick={() => { onDeleteEntry(item.id); onShowToast("Log entry deleted"); }}
                     className="p-1.5 hover:bg-red-950/20 text-gray-500 hover:text-red-400 rounded-md transition-colors cursor-pointer"
                     title="Delete Entry"
                   >
@@ -260,6 +309,7 @@ export default function HistoryView({
             <div className="flex justify-between items-start pb-2 border-b border-gray-800">
               <h3 className="text-sm font-bold text-gray-200">Inspect Log Record Structures</h3>
               <button 
+                type="button"
                 onClick={() => setActiveDetails(null)}
                 className="p-1 hover:bg-gray-800 rounded text-gray-400 hover:text-white cursor-pointer"
               >
@@ -290,6 +340,7 @@ export default function HistoryView({
             </div>
 
             <button
+              type="button"
               onClick={() => setActiveDetails(null)}
               className="w-full py-2 bg-gray-900 hover:bg-gray-850 border border-gray-800 text-xs font-semibold text-gray-400 rounded-lg cursor-pointer"
             >

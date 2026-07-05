@@ -24,9 +24,10 @@ import { parseVCardString, parseWifiString } from '../data';
 interface ReadViewProps {
   report: NFCCompatibilityReport;
   onAddHistory: (entry: Omit<NFCHistoryEntry, 'id' | 'timestamp'>) => void;
+  onShowToast: (message: string) => void;
 }
 
-export default function ReadView({ report, onAddHistory }: ReadViewProps) {
+export default function ReadView({ report, onAddHistory, onShowToast }: ReadViewProps) {
   const [scanState, setScanState] = useState<'idle' | 'scanning' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [serialNumber, setSerialNumber] = useState('');
@@ -66,14 +67,8 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
         isIframe = true;
       }
       
-      if (isIframe) {
-        setErrorMessage("Web NFC is restricted inside iframes by the browser. Please use the Mock Scanner below, or open this app in a new top-level tab!");
-        setScanState('error');
-        return;
-      }
-
-      if (!('NDEFReader' in window)) {
-        setErrorMessage("Web NFC is not supported in this browser. Try our Mock Scanner to test!");
+      if (isIframe || !('NDEFReader' in window)) {
+        setErrorMessage("Web NFC is restricted or unsupported in this browser/environment. Web NFC requires HTTPS, a compatible Android mobile device, and must run in a top-level tab (not inside an iframe).");
         setScanState('error');
         return;
       }
@@ -147,6 +142,11 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
             };
           });
 
+          // Haptic Feedback / Device Vibration
+          if (navigator.vibrate) {
+            navigator.vibrate(200);
+          }
+
           setRecords(parsedRecords);
           setScanLogs(prev => [
             ...prev,
@@ -197,112 +197,6 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
     }
   };
 
-  // Mock Scan Injection for Desktop & Reviewers
-  const injectMockScan = (preset: 'wifi' | 'vcard' | 'url' | 'location' | 'text' | 'json') => {
-    setScanState('scanning');
-    setErrorMessage('');
-    setRecords([]);
-    setScanLogs([
-      'Booting RFID high-fidelity hardware emulator...',
-      'Mapping virtual antenna sector addresses...',
-      'Listening for simulated tag placement...'
-    ]);
-    
-    setTimeout(() => {
-      setScanLogs(prev => [
-        ...prev,
-        'Simulated Tag aligned within range.',
-        'Mock tag transponder detected: NTAG215 (504 Bytes capacity).',
-        'Executing contactless RF handshake protocol...'
-      ]);
-    }, 500);
-
-    setTimeout(() => {
-      setScanLogs(prev => [
-        ...prev,
-        'Retrieving physical hardware UID: 04:A2:BC:92:4F:5D:80',
-        'Extracting raw NDEF binary footprint...',
-        'Parsing record headers and payload formats...'
-      ]);
-    }, 1100);
-
-    setTimeout(() => {
-      const serial = '04:A2:BC:92:4F:5D:80';
-      setSerialNumber(serial);
-      
-      let mockRecords: any[] = [];
-
-      switch (preset) {
-        case 'wifi':
-          mockRecords = [{
-            recordType: 'text',
-            mediaType: '',
-            id: 'wifi-1',
-            rawData: new TextEncoder().encode('WIFI:S:Guest_Cabin;T:WPA;P:mountainpass101;H:false;;'),
-            text: 'WIFI:S:Guest_Cabin;T:WPA;P:mountainpass101;H:false;;'
-          }];
-          break;
-        case 'vcard':
-          mockRecords = [{
-            recordType: 'text',
-            mediaType: '',
-            id: 'vcard-1',
-            rawData: new TextEncoder().encode('BEGIN:VCARD\nVERSION:3.0\nFN:Diana Prince\nORG:Justice Org\nTEL;TYPE=CELL:+1 (555) 762-3788\nEMAIL;TYPE=PREF,INTERNET:diana.prince@league.example.com\nURL:https://nfc.aiue.se/bio/diana\nEND:VCARD'),
-            text: 'BEGIN:VCARD\nVERSION:3.0\nFN:Diana Prince\nORG:Justice Org\nTEL;TYPE=CELL:+1 (555) 762-3788\nEMAIL;TYPE=PREF,INTERNET:diana.prince@league.example.com\nURL:https://nfc.aiue.se/bio/diana\nEND:VCARD'
-          }];
-          break;
-        case 'url':
-          mockRecords = [{
-            recordType: 'url',
-            mediaType: '',
-            id: 'url-1',
-            rawData: new TextEncoder().encode('https://nfc.aiue.se/info'),
-            text: 'https://nfc.aiue.se/info'
-          }];
-          break;
-        case 'location':
-          mockRecords = [{
-            recordType: 'text',
-            mediaType: '',
-            id: 'geo-1',
-            rawData: new TextEncoder().encode('geo:48.8584,2.2945'),
-            text: 'geo:48.8584,2.2945'
-          }];
-          break;
-        case 'json':
-          mockRecords = [{
-            recordType: 'mime',
-            mediaType: 'application/json',
-            id: 'json-1',
-            rawData: new TextEncoder().encode('{"deviceId": "sensor-099", "status": "active", "reading": 42.8, "alert": false}'),
-            text: '{"deviceId": "sensor-099", "status": "active", "reading": 42.8, "alert": false}'
-          }];
-          break;
-        default:
-          mockRecords = [{
-            recordType: 'text',
-            mediaType: '',
-            id: 'text-1',
-            rawData: new TextEncoder().encode('Welcome to NFC Writer. This plain text record is written to a standard NTAG215 tag payload.'),
-            text: 'Welcome to NFC Writer. This plain text record is written to a standard NTAG215 tag payload.'
-          }];
-      }
-
-      setRecords(mockRecords);
-      setScanState('success');
-
-      // Save to History
-      onAddHistory({
-        operation: 'read',
-        status: 'success',
-        recordType: mockRecords[0]?.recordType || 'NDEF Message',
-        recordsCount: mockRecords.length,
-        summary: `Mock Scanned tag (${preset.toUpperCase()})`,
-        details: JSON.stringify({ serialNumber: serial, records: mockRecords.map(r => ({ recordType: r.recordType, text: r.text })) })
-      });
-    }, 1800);
-  };
-
   // Convert array to hex string
   const toHexString = (byteArray: Uint8Array) => {
     return Array.from(byteArray, byte => {
@@ -319,13 +213,16 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+    onShowToast("Payload copied to clipboard!");
   };
 
   const shareText = (text: string) => {
     if (navigator.share) {
       navigator.share({ title: 'NFC Read Payload', text });
+      onShowToast("Payload shared!");
     } else {
       navigator.clipboard.writeText(text);
+      onShowToast("Payload copied to clipboard!");
     }
   };
 
@@ -347,6 +244,7 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           {scanState === 'scanning' ? (
             <button
+              type="button"
               onClick={stopScanning}
               className="w-full sm:w-auto px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
@@ -354,8 +252,14 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
             </button>
           ) : (
             <button
+              type="button"
+              disabled={!report.readyToUse}
               onClick={startRealScan}
-              className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-lg shadow-blue-500/10 active:scale-95"
+              className={`w-full sm:w-auto px-5 py-2.5 text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-95 ${
+                report.readyToUse 
+                  ? 'bg-blue-600 hover:bg-blue-500 shadow-blue-500/10' 
+                  : 'bg-gray-800 border border-gray-700 text-gray-500 cursor-not-allowed opacity-60'
+              }`}
             >
               <Scan className="w-4 h-4" /> Start Live Scan
             </button>
@@ -363,36 +267,16 @@ export default function ReadView({ report, onAddHistory }: ReadViewProps) {
         </div>
       </div>
 
-      {/* Hardware Sandbox & Emulator */}
-      {!report.webNfcSupported && scanState === 'idle' && (
-        <div className="bg-blue-950/20 border border-blue-500/20 rounded-xl p-5 space-y-3">
-          <div className="flex items-center gap-2">
-            <Play className="w-4 h-4 text-blue-400 animate-pulse" />
-            <h3 className="font-semibold text-xs text-blue-200">RFID/NFC Hardware Sandbox & Emulator</h3>
+      {/* Hardware Compatibility Alert */}
+      {!report.readyToUse && (
+        <div className="bg-red-950/20 border border-red-500/20 rounded-xl p-5 space-y-2">
+          <div className="flex items-center gap-2 text-red-400">
+            <AlertCircle className="w-4 h-4" />
+            <h3 className="font-semibold text-xs text-red-200">Hardware Compatibility Alert: NFC Not Available</h3>
           </div>
-          <p className="text-[11px] text-gray-400">
-            Since direct radio communication requires physical device antennas, you can utilize this sandbox emulator to model how NDEF records are cataloged, decoded, and rendered on screen:
+          <p className="text-[11px] text-gray-400 leading-relaxed">
+            Contactless scanning is restricted or unsupported in this browser environment. Direct physical Web NFC access is only available on compatible mobile devices (e.g. Android using Google Chrome) over secure HTTPS, operating outside of sandboxed frames.
           </p>
-          <div className="flex flex-wrap gap-2 pt-1">
-            <button onClick={() => injectMockScan('wifi')} className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[10px] rounded-md font-medium text-gray-300 flex items-center gap-1 cursor-pointer transition-colors">
-              <Wifi className="w-3 h-3 text-sky-400" /> Wi-Fi Preset
-            </button>
-            <button onClick={() => injectMockScan('vcard')} className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[10px] rounded-md font-medium text-gray-300 flex items-center gap-1 cursor-pointer transition-colors">
-              <Contact className="w-3 h-3 text-emerald-400" /> Business Card
-            </button>
-            <button onClick={() => injectMockScan('url')} className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[10px] rounded-md font-medium text-gray-300 flex items-center gap-1 cursor-pointer transition-colors">
-              <ExternalLink className="w-3 h-3 text-blue-400" /> URL Preset
-            </button>
-            <button onClick={() => injectMockScan('location')} className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[10px] rounded-md font-medium text-gray-300 flex items-center gap-1 cursor-pointer transition-colors">
-              <MapPin className="w-3 h-3 text-red-400" /> Location Maps
-            </button>
-            <button onClick={() => injectMockScan('json')} className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[10px] rounded-md font-medium text-gray-300 flex items-center gap-1 cursor-pointer transition-colors">
-              <Code className="w-3 h-3 text-purple-400" /> JSON Payload
-            </button>
-            <button onClick={() => injectMockScan('text')} className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[10px] rounded-md font-medium text-gray-300 flex items-center gap-1 cursor-pointer transition-colors">
-              <FileText className="w-3 h-3 text-amber-400" /> Plain Text
-            </button>
-          </div>
         </div>
       )}
 

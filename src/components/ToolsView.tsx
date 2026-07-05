@@ -16,16 +16,18 @@ import {
   Wifi,
   Lock,
   Cpu,
-  Bookmark
+  Bookmark,
+  Download
 } from 'lucide-react';
 import { NFCCompatibilityReport } from '../types';
 
 interface ToolsViewProps {
   report: NFCCompatibilityReport;
   onRefreshDiagnostics: () => void;
+  onShowToast: (message: string) => void;
 }
 
-export default function ToolsView({ report, onRefreshDiagnostics }: ToolsViewProps) {
+export default function ToolsView({ report, onRefreshDiagnostics, onShowToast }: ToolsViewProps) {
   const [activeTool, setActiveTool] = useState<'compat' | 'codec' | 'formatter' | 'inspector'>('compat');
 
   // Codect Tool States
@@ -47,6 +49,47 @@ export default function ToolsView({ report, onRefreshDiagnostics }: ToolsViewPro
   // QR Converter State
   const [qrInput, setQrInput] = useState('https://nfc.aiue.se/');
   const qrCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Dynamic feedback and download states
+  const [isDiagnosing, setIsDiagnosing] = useState(false);
+  const [isDownloadingQR, setIsDownloadingQR] = useState(false);
+
+  const handleRefreshDiagnostics = () => {
+    setIsDiagnosing(true);
+    onShowToast("Scanning hardware components and browser capabilities...");
+    setTimeout(() => {
+      onRefreshDiagnostics();
+      setIsDiagnosing(false);
+      onShowToast("Hardware diagnostic assessment complete!");
+    }, 1000);
+  };
+
+  const handleDownloadQR = () => {
+    const canvas = qrCanvasRef.current;
+    if (!canvas) {
+      onShowToast("Error: QR Canvas is not ready.");
+      return;
+    }
+    setIsDownloadingQR(true);
+    onShowToast("Preparing high-fidelity QR Code image...");
+    
+    setTimeout(() => {
+      try {
+        const url = canvas.toDataURL("image/png");
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `nfc_bridge_qr_${Date.now()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        onShowToast("Download started! Saved QR Code PNG.");
+      } catch (err) {
+        onShowToast("Error downloading QR Code.");
+      } finally {
+        setIsDownloadingQR(false);
+      }
+    }, 800);
+  };
 
   // Run Base64 conversion
   useEffect(() => {
@@ -156,6 +199,7 @@ export default function ToolsView({ report, onRefreshDiagnostics }: ToolsViewPro
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+    onShowToast("Copied to clipboard!");
   };
 
   return (
@@ -211,10 +255,13 @@ export default function ToolsView({ report, onRefreshDiagnostics }: ToolsViewPro
             <div className="flex justify-between items-center pb-2 border-b border-gray-800">
               <h3 className="text-sm font-bold text-gray-200">Device Hardware Assessment</h3>
               <button
-                onClick={onRefreshDiagnostics}
-                className="p-1.5 hover:bg-gray-900 border border-gray-800 rounded-md text-gray-400 hover:text-blue-400 cursor-pointer flex items-center gap-1.5 text-[10px] font-semibold"
+                type="button"
+                disabled={isDiagnosing}
+                onClick={handleRefreshDiagnostics}
+                className={`p-1.5 hover:bg-gray-900 border border-gray-800 rounded-md text-gray-400 hover:text-blue-400 cursor-pointer flex items-center gap-1.5 text-[10px] font-semibold ${isDiagnosing ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <RefreshCw className="w-3.5 h-3.5" /> Re-Diagnose
+                <RefreshCw className={`w-3.5 h-3.5 ${isDiagnosing ? 'animate-spin text-blue-400' : ''}`} />
+                {isDiagnosing ? 'Assessing...' : 'Re-Diagnose'}
               </button>
             </div>
 
@@ -318,12 +365,14 @@ export default function ToolsView({ report, onRefreshDiagnostics }: ToolsViewPro
               
               <div className="flex bg-gray-900 rounded-lg p-0.5 border border-gray-850">
                 <button
+                  type="button"
                   onClick={() => setCodecDirection('encode')}
                   className={`px-2 py-1 text-[9px] font-bold rounded-md cursor-pointer ${codecDirection === 'encode' ? 'bg-blue-600 text-white' : 'text-gray-400'}`}
                 >
                   ENCODE
                 </button>
                 <button
+                  type="button"
                   onClick={() => setCodecDirection('decode')}
                   className={`px-2 py-1 text-[9px] font-bold rounded-md cursor-pointer ${codecDirection === 'decode' ? 'bg-blue-600 text-white' : 'text-gray-400'}`}
                 >
@@ -384,7 +433,7 @@ export default function ToolsView({ report, onRefreshDiagnostics }: ToolsViewPro
               </div>
 
               {/* Dynamic QR Canvas */}
-              <div className="shrink-0 flex items-center justify-center">
+              <div className="shrink-0 flex flex-col items-center gap-3">
                 <div className="p-2.5 bg-gray-950 border border-gray-900 rounded-xl">
                   <canvas 
                     ref={qrCanvasRef} 
@@ -393,6 +442,15 @@ export default function ToolsView({ report, onRefreshDiagnostics }: ToolsViewPro
                     className="w-32 h-32" 
                   />
                 </div>
+                <button
+                  type="button"
+                  disabled={isDownloadingQR}
+                  onClick={handleDownloadQR}
+                  className={`w-full py-1.5 px-3 bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[10px] font-bold text-gray-300 rounded-lg cursor-pointer flex items-center justify-center gap-1.5 transition-all ${isDownloadingQR ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <Download className={`w-3.5 h-3.5 text-blue-400 ${isDownloadingQR ? 'animate-bounce' : ''}`} />
+                  {isDownloadingQR ? 'Downloading...' : 'Download PNG'}
+                </button>
               </div>
             </div>
           </div>
@@ -423,6 +481,7 @@ export default function ToolsView({ report, onRefreshDiagnostics }: ToolsViewPro
 
               <div className="flex gap-2">
                 <button
+                  type="button"
                   onClick={formatJSON}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white rounded-lg cursor-pointer"
                 >

@@ -73,18 +73,21 @@ export default function SettingsView({
 
                 <div className="flex bg-gray-900 rounded-lg p-0.5 border border-gray-850 self-start sm:self-auto">
                   <button
+                    type="button"
                     onClick={() => onUpdateSettings({ theme: 'dark' })}
                     className={`px-3 py-1.5 text-[10px] font-bold rounded-md flex items-center gap-1 cursor-pointer ${settings.theme === 'dark' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
                   >
                     <Moon className="w-3 h-3" /> Space
                   </button>
                   <button
+                    type="button"
                     onClick={() => onUpdateSettings({ theme: 'light' })}
                     className={`px-3 py-1.5 text-[10px] font-bold rounded-md flex items-center gap-1 cursor-pointer ${settings.theme === 'light' ? 'bg-blue-600 text-white animate-pulse' : 'text-gray-400 hover:text-gray-200'}`}
                   >
                     <Sun className="w-3 h-3" /> Bright
                   </button>
                   <button
+                    type="button"
                     onClick={() => onUpdateSettings({ theme: 'system' })}
                     className={`px-3 py-1.5 text-[10px] font-bold rounded-md flex items-center gap-1 cursor-pointer ${settings.theme === 'system' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
                   >
@@ -103,6 +106,7 @@ export default function SettingsView({
                 <div className="flex flex-wrap gap-2.5 pt-1.5">
                   {COLOR_PRESETS.map((color) => (
                     <button
+                      type="button"
                       key={color.name}
                       onClick={() => onUpdateSettings({ accentColor: color.value })}
                       className={`w-8 h-8 rounded-full cursor-pointer flex items-center justify-center border-2 transition-all ${settings.accentColor === color.value ? 'border-white scale-110 shadow-lg shadow-blue-500/20' : 'border-transparent hover:scale-105'}`}
@@ -225,6 +229,7 @@ export default function SettingsView({
             </p>
 
             <button
+              type="button"
               onClick={() => {
                 if (confirm("DANGER: This will permanently wipe all history activity log files and user custom templates from LocalStorage. Are you absolutely certain you want to reset?")) {
                   onResetAllData();

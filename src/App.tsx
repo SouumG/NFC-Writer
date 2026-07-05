@@ -20,7 +20,8 @@ import {
   X,
   Smartphone,
   Download,
-  AlertCircle
+  AlertCircle,
+  CheckCircle
 } from 'lucide-react';
 
 import { NFCSettings, NFCTemplate, NFCHistoryEntry, NFCCompatibilityReport } from './types';
@@ -88,6 +89,15 @@ export default function App() {
     }
     return [];
   });
+
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => {
+      setToast(prev => prev === message ? null : prev);
+    }, 2000);
+  };
 
   // Compatibility Dynamic Assessment on start
   useEffect(() => {
@@ -271,6 +281,7 @@ export default function App() {
       {/* Mobile Top Header */}
       <header className="md:hidden flex items-center justify-between px-5 py-4 bg-gray-950/80 border-b border-gray-800/80 sticky top-0 z-40 backdrop-blur-md">
         <button
+          type="button"
           onClick={() => handleNavigate('home')}
           className="flex items-center gap-2 text-white font-bold tracking-tight text-sm select-none"
         >
@@ -281,6 +292,7 @@ export default function App() {
         </button>
 
         <button
+          type="button"
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className={`p-1.5 hover:bg-gray-900 rounded-lg text-gray-400 hover:text-white cursor-pointer relative transition-colors ${
             sidebarOpen ? 'z-51 text-white bg-gray-900' : 'z-40'
@@ -306,6 +318,7 @@ export default function App() {
         <div className="space-y-6 p-5">
           <div className="flex items-center justify-between pb-4 border-b border-gray-900">
             <button
+              type="button"
               onClick={() => handleNavigate('home')}
               className="flex items-center gap-2.5 text-white font-black tracking-tight text-lg select-none cursor-pointer"
             >
@@ -314,7 +327,7 @@ export default function App() {
               </div>
               <div className="text-left">
                 <div className="font-bold leading-none text-sm">NFC Writer</div>
-                <span className="text-[10px] text-gray-500 font-semibold font-mono tracking-wide mt-0.5 block">SUITE v1.1.3</span>
+                <span className="text-[10px] text-gray-500 font-semibold font-mono tracking-wide mt-0.5 block">SUITE v1.1.4</span>
               </div>
             </button>
           </div>
@@ -335,6 +348,7 @@ export default function App() {
               const isActive = currentPage === link.id;
               return (
                 <button
+                  type="button"
                   key={link.id}
                   onClick={() => handleNavigate(link.id)}
                   className={`w-full px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-3 transition-all cursor-pointer ${isActive ? 'bg-blue-600 text-white shadow shadow-blue-600/35 font-bold' : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900/50'}`}
@@ -359,6 +373,7 @@ export default function App() {
               const isActive = currentPage === link.id;
               return (
                 <button
+                  type="button"
                   key={link.id}
                   onClick={() => handleNavigate(link.id)}
                   className={`w-full px-3 py-2 rounded-lg text-[11px] font-bold flex items-center gap-2.5 transition-colors cursor-pointer ${isActive ? 'bg-gray-900 text-blue-400' : 'text-gray-500 hover:text-gray-300'}`}
@@ -409,6 +424,7 @@ export default function App() {
           <ReadView
             report={compatibility}
             onAddHistory={handleAddHistory}
+            onShowToast={showToast}
           />
         )}
 
@@ -420,6 +436,7 @@ export default function App() {
             onSaveTemplate={handleSaveTemplate}
             selectedPreset={selectedPreset}
             onClearPreset={() => setSelectedPreset(null)}
+            onShowToast={showToast}
           />
         )}
 
@@ -430,6 +447,7 @@ export default function App() {
             onSaveTemplate={handleSaveTemplate}
             onDeleteTemplate={handleDeleteTemplate}
             onImportTemplates={handleImportTemplates}
+            onShowToast={showToast}
           />
         )}
 
@@ -439,6 +457,7 @@ export default function App() {
             onToggleFavorite={handleToggleFavorite}
             onDeleteEntry={handleDeleteEntry}
             onClearHistory={() => setHistory([])}
+            onShowToast={showToast}
           />
         )}
 
@@ -446,6 +465,7 @@ export default function App() {
           <ToolsView
             report={compatibility}
             onRefreshDiagnostics={() => setCompatibility(runCompatibilityCheck())}
+            onShowToast={showToast}
           />
         )}
 
@@ -471,6 +491,7 @@ export default function App() {
               <p className="text-xs text-gray-500">The page path you are loading is corrupted or does not exist.</p>
             </div>
             <button
+              type="button"
               onClick={() => handleNavigate('home')}
               className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors"
             >
@@ -485,11 +506,19 @@ export default function App() {
             &copy; 2026 NFC Writer. Hosted at: <a href="https://nfc.aiue.se/" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-blue-400 font-mono">https://nfc.aiue.se/</a>
           </div>
           <div className="flex items-center gap-3">
-            <span>Version v1.1.3 (Production)</span>
+            <span>Version v1.1.4 (Production)</span>
             <span>•</span>
-            <button onClick={() => handleNavigate('legal')} className="hover:text-blue-400 cursor-pointer">Privacy & Terms</button>
+            <button type="button" onClick={() => handleNavigate('legal')} className="hover:text-blue-400 cursor-pointer">Privacy & Terms</button>
           </div>
         </footer>
+
+        {/* Floating Toast Notification */}
+        {toast && (
+          <div className="fixed bottom-5 right-5 bg-blue-600 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-xl z-50 flex items-center gap-2 border border-blue-500/20 backdrop-blur-md animate-bounce">
+            <CheckCircle className="w-4 h-4" />
+            <span>{toast}</span>
+          </div>
+        )}
 
       </main>
     </div>

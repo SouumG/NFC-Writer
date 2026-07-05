@@ -15,7 +15,8 @@ import {
   CheckCircle,
   FileText,
   Compass,
-  LayoutGrid
+  LayoutGrid,
+  Layers
 } from 'lucide-react';
 import { NFCCompatibilityReport, NFCHistoryEntry } from '../types';
 
@@ -44,7 +45,7 @@ export default function HomeView({
         <div className="flex-1 space-y-4 text-center md:text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full text-xs font-semibold">
             <Flame className="w-3.5 h-3.5 animate-pulse" />
-            <span>NFC suite v1.1.3</span>
+            <span>NFC suite v1.1.5</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-blue-400">
             Write. Read. Format. <br />Contactless Tags.
@@ -164,6 +165,26 @@ export default function HomeView({
               </div>
               <span className={`font-semibold ${report.isAndroid ? 'text-emerald-400' : 'text-amber-400'}`}>
                 {report.osName || 'Unknown'}
+              </span>
+            </div>
+
+            <div className="p-3 bg-gray-900/40 rounded-lg border border-gray-800/60 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-gray-500" />
+                <span className="text-gray-300">Frame Context</span>
+              </div>
+              <span className={`font-semibold ${!report.isIframe ? 'text-emerald-400' : 'text-amber-400'}`}>
+                {report.isIframe ? 'Iframe Sandbox' : 'Top Level'}
+              </span>
+            </div>
+
+            <div className="p-3 bg-gray-900/40 rounded-lg border border-gray-800/60 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-gray-500" />
+                <span className="text-gray-300">Touch Capability</span>
+              </div>
+              <span className={`font-semibold ${report.touchSupported ? 'text-emerald-400' : 'text-amber-400'}`}>
+                {report.touchSupported ? 'Supported' : 'No Touch'}
               </span>
             </div>
           </div>

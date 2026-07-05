@@ -39,7 +39,7 @@ export default function DocumentationView() {
               NFC Specifications &amp; Capabilities
             </h2>
             <p className="text-xs text-gray-400 max-w-xl leading-relaxed">
-              Explore actual browser-level support bounds, hardware protocols, memory layouts, and the core utility of our software simulator.
+              Explore actual browser-level support bounds, hardware protocols, memory layouts, and core transponder specifications.
             </p>
           </div>
 
@@ -53,29 +53,6 @@ export default function DocumentationView() {
             <span>Open GitHub Repository</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
-        </div>
-      </div>
-
-      {/* NFC Simulator Explanation Banner */}
-      <div className="relative overflow-hidden border border-amber-500/20 bg-amber-950/15 rounded-2xl p-6 space-y-3">
-        <div className="flex items-center gap-2 text-amber-400">
-          <Monitor className="w-5 h-5 text-amber-400" />
-          <h3 className="font-bold text-sm tracking-tight text-amber-200 uppercase font-sans">
-            What is the purpose of the NFC Simulator?
-          </h3>
-        </div>
-        <div className="text-xs text-gray-400 leading-relaxed space-y-2">
-          <p>
-            The physical <strong>Web NFC API</strong> is a powerful standard, but it is heavily restricted by modern hardware and OS ecosystems: it is primarily supported on <strong>Android devices running Google Chrome</strong>, and is entirely unsupported on iOS browsers, desktop systems, and standard computer browsers.
-          </p>
-          <p>
-            The <strong>NFC Simulator mode</strong> provides an essential development and testing utility. It bypasses platform restrictions to emulate real NDEF transmissions entirely in software. This allows you to:
-          </p>
-          <ul className="list-disc pl-5 space-y-1 text-gray-400">
-            <li><strong>Design &amp; Debug:</strong> Draft, customize, and validate raw NDEF payload formats, JSON strings, and contact vCard models.</li>
-            <li><strong>Validate Structure:</strong> Test multi-record tags, verify SSID encryption syntax, and inspect mock NFC transaction logs on any device (including macOS, Windows, Linux, and iOS Safari).</li>
-            <li><strong>Seamless Mocking:</strong> Dry-run your RFID writing and formatting loops without needing physical writable tags on hand.</li>
-          </ul>
         </div>
       </div>
 

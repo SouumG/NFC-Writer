@@ -342,7 +342,7 @@ export function runCompatibilityCheck(): NFCCompatibilityReport {
   } catch (e) {
     isIframe = true;
   }
-  const readyToUse = hasNFC && isSecure && isAndroid && isChrome && !isIframe;
+  const readyToUse = hasNFC && isSecure && isAndroid && isChrome;
 
   return {
     webNfcSupported: hasNFC,

@@ -1,4 +1,4 @@
-# NFC Writer — Contactless NDEF Developer Suite Pro (v1.1.3)
+# NFC Writer — Contactless NDEF Developer Suite Pro (v1.1.5)
 
 URL: [https://nfc.aiue.se/](https://nfc.aiue.se/)
 
@@ -8,19 +8,13 @@ This application is built entirely client-side using **React 18**, **Vite**, and
 
 ---
 
-## The Web NFC API & Software Simulator
+## The Web NFC API & Hardware Compatibility
 
 ### The Challenge of Native Web NFC
 The native **W3C Web NFC API** allows web applications to read and write Near Field Communication (NFC) tags. However, the standard is heavily sandboxed and restricted by modern browser vendors:
 1. **Device Compatibility:** It is exclusively supported on **Google Chrome, Opera, and Microsoft Edge for Android**.
 2. **Desktop & Apple iOS Constraints:** Desktop operating systems (macOS, Windows, Linux) do not expose NFC reader chips to browsers. Furthermore, Apple iOS restricts native browser access to the device NFC controller, reserving core RFID access for native App Store applications.
 3. **Context Security:** Web NFC will only compile and execute under secure cryptographic **HTTPS** origins.
-
-### Purpose of the Software Simulator Mode
-To enable comprehensive cross-platform development, NFC Writer implements an active **Web NFC Software Simulator**. 
-- **Universal Testing:** Allows developers on macOS, Windows, Linux, or iOS Safari to design, draft, and test complex multi-record NDEF payloads without being blocked by platform constraints.
-- **Payload Verification:** Emulates raw chip register writes and zero-fill sequences in a simulated terminal environment, returning accurate telemetry and raw data records for inspection.
-- **Hardware Dry-Runs:** Enables testing and saving custom NDEF templates without requiring physical writable tags (like NTAG213 or NTAG215) on hand.
 
 ---
 
@@ -48,7 +42,7 @@ The codebase is engineered with high modularity and robust separation of concern
 
 - `/src/main.tsx`: Entry point. Registers the Progressive Web App (PWA) Service Worker, setting up automated background updates.
 - `/src/components/ReadView.tsx`: Real-time Web NFC scanner, complete with Hex-dumps, record parsing, and telemetry diagnostics.
-- `/src/components/WriteView.tsx`: Core NDEF programmer. Offers 11 distinct input types, template loading, and the toggleable **Software Simulator Engine**.
+- `/src/components/WriteView.tsx`: Core NDEF programmer. Offers 11 distinct input types and preset template loading.
 - `/src/components/ToolsView.tsx`: Advanced utility toolkit for developers, including SSID encryption generators, vCard builders, and URL shorteners.
 - `/src/components/DocumentationView.tsx`: Centralized developer guide outlining chip architectures, protocol limits, and Web NFC specifications.
 - `/src/data.ts`: Shared constants, utility string generators, and the 20 precompiled NFC templates.

@@ -55,6 +55,7 @@ export default function CompatibilityBanner({ report, onNavigateToTools }: Compa
               <span className="font-medium text-amber-300">Quick Fix:</span> Use <strong className="text-white">Chrome Browser</strong> on an <strong className="text-white">Android Device</strong> over <strong className="text-white">HTTPS</strong>{report.isIframe && <span className="text-white font-bold"> in a New Tab</span>}.
             </div>
             <button
+              type="button"
               onClick={onNavigateToTools}
               className="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors cursor-pointer ml-auto"
             >

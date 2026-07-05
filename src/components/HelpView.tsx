@@ -16,7 +16,7 @@ export default function HelpView() {
     },
     {
       q: "Which browsers and devices support NFC Writer?",
-      a: "Web NFC is fully active on Google Chrome and Opera browsers running on Android mobile devices (with NFC hardware enabled). iPhones and desktop browsers do not expose direct NFC hardware channels to standard web browsers yet. However, on unsupported devices, you can still formulate configurations, design payload templates, and use our codecs or simulators."
+      a: "Web NFC is fully active on Google Chrome and Opera browsers running on Android mobile devices (with NFC hardware enabled). iPhones and desktop browsers do not expose direct NFC hardware channels to standard web browsers yet. However, on unsupported devices, you can still formulate configurations, design payload templates, and use our developer tools, converters, or codecs."
     },
     {
       q: "What is the difference between NTAG213, NTAG215, and NTAG216?",
