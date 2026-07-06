@@ -313,6 +313,14 @@ export default function WriteView({
     setWriteError('');
     setWriteLogs(['Booting Web NFC Engine...', 'Accessing device RFID writer...']);
 
+    // Check if running inside iframe sandbox
+    let isIframe = false;
+    try {
+      isIframe = window.self !== window.top;
+    } catch (e) {
+      isIframe = true;
+    }
+
     let records: any[] = [];
     try {
       records = compileNDEFMessage();
@@ -324,8 +332,10 @@ export default function WriteView({
       return;
     }
 
-    if (!('NDEFReader' in window)) {
-      const msg = "Web NFC is not supported or disabled on this system. Direct physical Web NFC access is only available on compatible mobile devices (e.g. Android using Google Chrome) over secure HTTPS.";
+    if (!('NDEFReader' in window) || isIframe) {
+      const msg = isIframe
+        ? "Physical Web NFC is restricted inside preview iframes. Please open the app in a NEW TAB to program tags."
+        : "Web NFC is not supported or disabled on this system. Direct physical Web NFC access is only available on compatible mobile devices (e.g. Android using Google Chrome) over secure HTTPS, operating outside of sandboxed frames.";
       setWriteError(msg);
       setWriteResult('failed');
       setWriteLogs(prev => [...prev, `Hardware access denied: ${msg}`]);
@@ -1407,15 +1417,17 @@ export default function WriteView({
               <button
                 type="button"
                 onClick={executeNDEFWrite}
-                disabled={isWriting}
+                disabled={isWriting || !report.readyToUse}
                 className={`flex-1 py-2.5 text-white text-xs font-bold rounded-lg cursor-pointer transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 ${
-                  selectedType === 'erase' 
-                  ? 'bg-red-600 hover:bg-red-500 disabled:bg-red-800 shadow-red-500/10' 
-                  : selectedType === 'format'
-                  ? 'bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 shadow-blue-500/10'
-                  : selectedType === 'lock'
-                  ? 'bg-red-700 hover:bg-red-600 disabled:bg-red-900 shadow-red-700/15 font-extrabold'
-                  : 'bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 shadow-blue-500/15'
+                  !report.readyToUse
+                    ? 'bg-gray-800 border border-gray-700 text-gray-500 cursor-not-allowed opacity-60'
+                    : selectedType === 'erase' 
+                    ? 'bg-red-600 hover:bg-red-500 disabled:bg-red-800 shadow-red-500/10' 
+                    : selectedType === 'format'
+                    ? 'bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 shadow-blue-500/10'
+                    : selectedType === 'lock'
+                    ? 'bg-red-700 hover:bg-red-600 disabled:bg-red-900 shadow-red-700/15 font-extrabold'
+                    : 'bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 shadow-blue-500/15'
                 }`}
               >
                 {isWriting ? (

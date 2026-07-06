@@ -72,8 +72,15 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
   // Real Web NFC Scan
   const startRealScan = async () => {
     try {
-      if (!('NDEFReader' in window)) {
-        setErrorMessage("Web NFC is unsupported on this browser or platform. Please ensure you are using a compatible browser (such as Google Chrome on Android) over HTTPS.");
+      let isIframe = false;
+      try {
+        isIframe = window.self !== window.top;
+      } catch (e) {
+        isIframe = true;
+      }
+      
+      if (isIframe || !('NDEFReader' in window)) {
+        setErrorMessage("Web NFC is restricted or unsupported in this browser/environment. Web NFC requires HTTPS, a compatible Android mobile device, and must run in a top-level tab (not inside an iframe).");
         setScanState('error');
         return;
       }
@@ -199,13 +206,7 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
         return;
       }
       console.error(err);
-      let friendlyError = err.message || "Failed to start NFC scan.";
-      if (err.name === 'NotAllowedError') {
-        friendlyError = "NFC permission denied. Note that Web NFC is restricted inside iframes. Please open the app in a NEW TAB to scan tags.";
-      } else if (err.name === 'SecurityError') {
-        friendlyError = "Security constraint: Web NFC requires a secure origin (HTTPS) and must be loaded in a top-level window. Open the app in a NEW TAB.";
-      }
-      setErrorMessage(friendlyError);
+      setErrorMessage(err.message || "Failed to start NFC scan.");
       setScanState('error');
     }
   };
