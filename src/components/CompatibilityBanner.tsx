@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertCircle, Chrome, Smartphone, ShieldCheck, CheckCircle2, ArrowRight } from 'lucide-react';
+import { AlertCircle, Chrome, Smartphone, ShieldCheck, CheckCircle2, ArrowRight, ExternalLink } from 'lucide-react';
 import { NFCCompatibilityReport } from '../types';
 
 interface CompatibilityBannerProps {
@@ -50,17 +50,34 @@ export default function CompatibilityBanner({ report, onNavigateToTools }: Compa
               <span>Frame: {report.isIframe ? 'Iframe Sandbox' : 'Top Level'}</span>
             </div>
           </div>
-          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 items-center">
+          <div className="mt-3 flex flex-col sm:flex-row gap-x-4 gap-y-2.5 items-center justify-between border-t border-amber-500/10 pt-3">
             <div className="text-[11px] text-gray-400">
-              <span className="font-medium text-amber-300">Quick Fix:</span> Use <strong className="text-white">Chrome Browser</strong> on an <strong className="text-white">Android Device</strong> over <strong className="text-white">HTTPS</strong>{report.isIframe && <span className="text-white font-bold"> in a New Tab</span>}.
+              <span className="font-medium text-amber-300">Quick Fix:</span> {report.isIframe ? (
+                <span>Web NFC is blocked inside iframe sandboxes. Open the app directly in a <strong className="text-white">New Tab</strong> to activate NFC features.</span>
+              ) : (
+                <span>Use <strong className="text-white">Chrome Browser</strong> on an <strong className="text-white">Android Device</strong> over <strong className="text-white">HTTPS</strong>.</span>
+              )}
             </div>
-            <button
-              type="button"
-              onClick={onNavigateToTools}
-              className="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors cursor-pointer ml-auto"
-            >
-              Run Diagnostic Tools <ArrowRight className="w-3 h-3" />
-            </button>
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+              {report.isIframe && (
+                <a
+                  href={window.location.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/35 border border-amber-500/35 rounded-lg text-[10px] font-bold text-amber-200 flex items-center gap-1.5 transition-all cursor-pointer hover:scale-[1.02]"
+                >
+                  <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+                  Open in New Tab
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={onNavigateToTools}
+                className="text-[11px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                Run Diagnostics <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       </div>

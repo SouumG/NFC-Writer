@@ -16,7 +16,8 @@ import {
   FileText,
   Compass,
   LayoutGrid,
-  Layers
+  Layers,
+  ExternalLink
 } from 'lucide-react';
 import { NFCCompatibilityReport, NFCHistoryEntry } from '../types';
 
@@ -189,8 +190,20 @@ export default function HomeView({
             </div>
           </div>
 
-          <div className="pt-2 border-t border-gray-800/60 flex items-center justify-between text-xs">
-            <span className="text-gray-400">Detailed browser capabilities & specs</span>
+          <div className="pt-2 border-t border-gray-800/60 flex flex-wrap gap-2 items-center justify-between text-xs">
+            {report.isIframe ? (
+              <a
+                href={window.location.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Open in New Tab to use NFC</span>
+              </a>
+            ) : (
+              <span className="text-gray-400">Detailed browser capabilities & specs</span>
+            )}
             <button
               onClick={() => onNavigate('tools')}
               className="text-blue-400 hover:text-blue-300 font-semibold cursor-pointer flex items-center gap-1"
