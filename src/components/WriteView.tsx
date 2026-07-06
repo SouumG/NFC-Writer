@@ -19,7 +19,8 @@ import {
   Grid,
   Info,
   RefreshCw,
-  Plus
+  Plus,
+  Lock
 } from 'lucide-react';
 import { NFCRecordType, NFCTemplate, NFCHistoryEntry, NFCCompatibilityReport } from '../types';
 import { generateId, generateVCard, generateWifiString, generateCalendarString } from '../data';
@@ -68,7 +69,10 @@ export default function WriteView({
 
   const [wifiSsid, setWifiSsid] = useState('NFC_High_Speed');
   const [wifiPass, setWifiPass] = useState('guestwifi2026');
-  const [wifiEnc, setWifiEnc] = useState<'WEP' | 'WPA' | 'none'>('WPA');
+  const [wifiEnc, setWifiEnc] = useState<'WEP' | 'WPA' | 'none' | 'WPA3' | 'WPA2_WPA3'>('WPA');
+  const [wifiAuth, setWifiAuth] = useState<string>('WPA2PSK');
+  const [wifiCrypt, setWifiCrypt] = useState<string>('AES');
+  const [wifiPayloadFormat, setWifiPayloadFormat] = useState<'standard' | 'wsc'>('standard');
   const [wifiHidden, setWifiHidden] = useState(false);
 
   const [calTitle, setCalTitle] = useState('Team Standup Meeting');
@@ -92,6 +96,16 @@ export default function WriteView({
 
   const [aarPackage, setAarPackage] = useState('com.google.android.apps.maps');
 
+  // New states for advanced Web NFC operations
+  const [textLang, setTextLang] = useState('en');
+  const [textEncoding, setTextEncoding] = useState<'utf-8' | 'utf-16'>('utf-8');
+  const [localType, setLocalType] = useState(':mytype');
+  const [localPayload, setLocalPayload] = useState('Hello Local NDEF');
+  const [externalType, setExternalType] = useState('com.example:mytarget');
+  const [externalPayload, setExternalPayload] = useState('Custom Domain External Data');
+  const [mimeFileBase64, setMimeFileBase64] = useState('');
+  const [mimeFileName, setMimeFileName] = useState('');
+
   // Compilation write state
   const [isWriting, setIsWriting] = useState(false);
   const [writeResult, setWriteResult] = useState<'success' | 'failed' | null>(null);
@@ -106,14 +120,26 @@ export default function WriteView({
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Clean up on unmount to prevent active locks
+  // Clean up on unmount to prevent active locks, and handle tab visibility change to auto-pause
   useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isWriting) {
+        setWriteLogs(prev => [...prev, 'Page visibility hidden. Auto-pausing NFC writer context to preserve battery...']);
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+          abortControllerRef.current = null;
+        }
+        setIsWriting(false);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []);
+  }, [isWriting]);
 
   // Generate NDEF message array based on selected type
   const compileNDEFMessage = () => {
@@ -123,7 +149,9 @@ export default function WriteView({
       case 'text':
         recordsList.push({
           recordType: 'text',
-          data: textVal
+          data: textVal,
+          encoding: textEncoding,
+          lang: textLang
         });
         break;
       case 'url':
@@ -163,7 +191,12 @@ export default function WriteView({
         break;
       case 'wifi':
         const wifiStr = generateWifiString({
-          wifiSsid, wifiPassword: wifiPass, wifiEncryption: wifiEnc, wifiHidden
+          wifiSsid,
+          wifiPassword: wifiPass,
+          wifiEncryption: wifiEnc,
+          wifiAuth: wifiAuth,
+          wifiCrypt: wifiCrypt,
+          wifiHidden
         });
         recordsList.push({
           recordType: 'mime',
@@ -208,10 +241,42 @@ export default function WriteView({
         });
         break;
       case 'mime':
+        let mimePayloadData: Uint8Array;
+        if (mimeFileBase64) {
+          try {
+            const binaryString = window.atob(mimeFileBase64);
+            const len = binaryString.length;
+            mimePayloadData = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+              mimePayloadData[i] = binaryString.charCodeAt(i);
+            }
+          } catch (err) {
+            mimePayloadData = new TextEncoder().encode(mimeData);
+          }
+        } else {
+          mimePayloadData = new TextEncoder().encode(mimeData);
+        }
         recordsList.push({
           recordType: 'mime',
           mediaType: mimeType,
-          data: new TextEncoder().encode(mimeData)
+          data: mimePayloadData
+        });
+        break;
+      case 'local':
+        recordsList.push({
+          recordType: localType.startsWith(':') ? localType : `:${localType}`,
+          data: new TextEncoder().encode(localPayload)
+        });
+        break;
+      case 'external':
+        recordsList.push({
+          recordType: externalType,
+          data: new TextEncoder().encode(externalPayload)
+        });
+        break;
+      case 'empty':
+        recordsList.push({
+          recordType: 'empty'
         });
         break;
       case 'custom':
@@ -248,14 +313,6 @@ export default function WriteView({
     setWriteError('');
     setWriteLogs(['Booting Web NFC Engine...', 'Accessing device RFID writer...']);
 
-    // Check if running inside iframe sandbox
-    let isIframe = false;
-    try {
-      isIframe = window.self !== window.top;
-    } catch (e) {
-      isIframe = true;
-    }
-
     let records: any[] = [];
     try {
       records = compileNDEFMessage();
@@ -267,10 +324,8 @@ export default function WriteView({
       return;
     }
 
-    if (!('NDEFReader' in window) || isIframe) {
-      const msg = isIframe
-        ? "Physical Web NFC is restricted inside preview iframes. Please open the app in a NEW TAB to program tags."
-        : "Web NFC is not supported or disabled on this system. Direct physical Web NFC access is only available on compatible mobile devices (e.g. Android using Google Chrome) over secure HTTPS, operating outside of sandboxed frames.";
+    if (!('NDEFReader' in window)) {
+      const msg = "Web NFC is not supported or disabled on this system. Direct physical Web NFC access is only available on compatible mobile devices (e.g. Android using Google Chrome) over secure HTTPS.";
       setWriteError(msg);
       setWriteResult('failed');
       setWriteLogs(prev => [...prev, `Hardware access denied: ${msg}`]);
@@ -288,13 +343,17 @@ export default function WriteView({
       } else if (selectedType === 'format') {
         setWriteLogs(prev => [...prev, 'Executing NDEF Format Operation: establishing clean payload registry...']);
         await ndef.write({ records: [{ recordType: 'text', data: '' }] }, { signal: abortControllerRef.current.signal });
+      } else if (selectedType === 'lock') {
+        setWriteLogs(prev => [...prev, 'Executing permanent Lock Operation: invoking makeReadOnly()...']);
+        // invoking makeReadOnly to permanently lock tag
+        await ndef.makeReadOnly({ signal: abortControllerRef.current.signal });
       } else {
         await ndef.write({ records }, { signal: abortControllerRef.current.signal });
       }
       
       setWriteLogs(prev => [...prev, 'Tag recognized.', 'Writing NDEF payload sectors...']);
       
-      if (verifyOption) {
+      if (verifyOption && selectedType !== 'lock') {
         setWriteLogs(prev => [...prev, 'Reading written registers to verify checksum...']);
         // Simulating verification briefly
         await new Promise(r => setTimeout(r, 800));
@@ -306,18 +365,18 @@ export default function WriteView({
         navigator.vibrate(200);
       }
 
-      setWriteLogs(prev => [...prev, 'Successfully programmed tag!']);
+      setWriteLogs(prev => [...prev, selectedType === 'lock' ? 'Successfully locked tag permanently!' : 'Successfully programmed tag!']);
       setWriteResult('success');
 
       // History log
-      const opType = selectedType === 'erase' ? 'format' : selectedType === 'format' ? 'format' : 'write';
+      const opType = selectedType === 'erase' ? 'format' : selectedType === 'format' ? 'format' : selectedType === 'lock' ? 'lock' : 'write';
       onAddHistory({
         operation: opType,
         status: 'success',
-        recordType: selectedType === 'erase' ? 'Empty/Erase' : selectedType === 'format' ? 'Clean NDEF Format' : selectedType.toUpperCase(),
-        recordsCount: records.length,
-        summary: selectedType === 'erase' ? 'Erased NFC tag memory' : selectedType === 'format' ? 'Formatted NFC tag to NDEF' : `Programmed tag (${selectedType.toUpperCase()})`,
-        details: `Successfully completed: ${selectedType === 'erase' ? 'Erase memory' : selectedType === 'format' ? 'Format NDEF' : JSON.stringify(records)}`
+        recordType: selectedType === 'erase' ? 'Empty/Erase' : selectedType === 'format' ? 'Clean NDEF Format' : selectedType === 'lock' ? 'Permanent Lock' : selectedType.toUpperCase(),
+        recordsCount: selectedType === 'lock' ? 0 : records.length,
+        summary: selectedType === 'erase' ? 'Erased NFC tag memory' : selectedType === 'format' ? 'Formatted NFC tag to NDEF' : selectedType === 'lock' ? 'Locked NFC tag permanently' : `Programmed tag (${selectedType.toUpperCase()})`,
+        details: `Successfully completed: ${selectedType === 'erase' ? 'Erase memory' : selectedType === 'format' ? 'Format NDEF' : selectedType === 'lock' ? 'makeReadOnly permanent lock' : JSON.stringify(records)}`
       });
 
     } catch (err: any) {
@@ -336,7 +395,7 @@ export default function WriteView({
       setWriteError(friendlyError);
       setWriteResult('failed');
       
-      const opType = selectedType === 'erase' ? 'format' : selectedType === 'format' ? 'format' : 'write';
+      const opType = selectedType === 'erase' ? 'format' : selectedType === 'format' ? 'format' : selectedType === 'lock' ? 'lock' : 'write';
       onAddHistory({
         operation: opType,
         status: 'failed',
@@ -590,9 +649,13 @@ export default function WriteView({
               { id: 'location', label: 'GPS Coordinates', icon: MapPin },
               { id: 'json', label: 'JSON Payload', icon: Code },
               { id: 'mime', label: 'Custom MIME', icon: Code },
+              { id: 'local', label: 'Local Record', icon: Code },
+              { id: 'external', label: 'External Record', icon: Code },
+              { id: 'empty', label: 'Empty Record', icon: Trash2 },
               { id: 'aar', label: 'Android App Link', icon: Grid },
               { id: 'erase', label: 'Erase Tag Memory', icon: Trash2 },
               { id: 'format', label: 'Format as NDEF', icon: RefreshCw },
+              { id: 'lock', label: 'Lock Tag (Permanent)', icon: Lock },
             ].map((item) => {
               const IconComp = item.icon;
               return (
@@ -634,6 +697,29 @@ export default function WriteView({
                     className="w-full h-24 p-3 text-xs glass-input rounded-lg resize-none text-gray-200 font-mono"
                     maxLength={500}
                   />
+                  <div className="grid grid-cols-2 gap-4 pt-1.5">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-400">Language Tag (e.g. en, es, fr)</label>
+                      <input
+                        type="text"
+                        value={textLang}
+                        onChange={(e) => setTextLang(e.target.value)}
+                        placeholder="en"
+                        className="w-full px-3 py-2 text-xs bg-black/40 border border-gray-800 rounded-lg text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500 transition-all font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-400">Encoding Format</label>
+                      <select
+                        value={textEncoding}
+                        onChange={(e) => setTextEncoding(e.target.value as any)}
+                        className="w-full px-3 py-2 text-xs bg-gray-900 border border-gray-800 rounded-lg text-gray-300 focus:outline-none"
+                      >
+                        <option value="utf-8">UTF-8 Encoding</option>
+                        <option value="utf-16">UTF-16 Encoding</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -650,6 +736,12 @@ export default function WriteView({
                       <option value="https://">https://</option>
                       <option value="http://">http://</option>
                       <option value="ftp://">ftp://</option>
+                      <option value="mailto:">mailto:</option>
+                      <option value="tel:">tel:</option>
+                      <option value="sms:">sms:</option>
+                      <option value="geo:">geo:</option>
+                      <option value="dpp://">dpp:// (WPA3 DPP)</option>
+                      <option value="custom:">custom:</option>
                     </select>
                     <input
                       type="text"
@@ -827,15 +919,70 @@ export default function WriteView({
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-gray-300">Security Encryption</label>
+                    <label className="text-xs font-semibold text-gray-300">Security Profile</label>
                     <select
                       value={wifiEnc}
-                      onChange={(e) => setWifiEnc(e.target.value as any)}
+                      onChange={(e) => {
+                        const val = e.target.value as any;
+                        setWifiEnc(val);
+                        if (val === 'WPA') {
+                          setWifiAuth('WPA2PSK');
+                          setWifiCrypt('AES');
+                        } else if (val === 'WEP') {
+                          setWifiAuth('WEP');
+                          setWifiCrypt('WEP');
+                        } else if (val === 'WPA3') {
+                          setWifiAuth('WPA3PSK');
+                          setWifiCrypt('AES');
+                        } else if (val === 'WPA2_WPA3') {
+                          setWifiAuth('WPA2WPA3PSK');
+                          setWifiCrypt('AES');
+                        } else {
+                          setWifiAuth('none');
+                          setWifiCrypt('none');
+                        }
+                      }}
                       className="w-full px-3 py-2 text-xs bg-gray-900 border border-gray-800 rounded-lg text-gray-300 focus:outline-none"
                     >
                       <option value="WPA">WPA/WPA2 Personal</option>
+                      <option value="WPA3">WPA3 Personal (SAE)</option>
+                      <option value="WPA2_WPA3">WPA2/WPA3 Personal Mixed</option>
                       <option value="WEP">WEP Legacy</option>
                       <option value="none">Open Network (No password)</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-gray-300">Advanced Authentication</label>
+                    <select
+                      value={wifiAuth}
+                      onChange={(e) => setWifiAuth(e.target.value)}
+                      className="w-full px-3 py-2 text-xs bg-gray-900 border border-gray-800 rounded-lg text-gray-300 focus:outline-none"
+                    >
+                      <option value="none">Open / None Authentication</option>
+                      <option value="WEP">WEP Authentication</option>
+                      <option value="WPAPSK">WPA-Personal Authentication</option>
+                      <option value="WPAEAP">WPA-Enterprise Authentication</option>
+                      <option value="WPA2PSK">WPA2-Personal Authentication</option>
+                      <option value="WPA2EAP">WPA2-Enterprise Authentication</option>
+                      <option value="WPAWPA2PSK">WPA/WPA2-Personal Mixed Authentication</option>
+                      <option value="WPAWPA2EAP">WPA/WPA2-Enterprise Mixed Authentication</option>
+                      <option value="WPA3PSK">WPA3-Personal Authentication (SAE)</option>
+                      <option value="WPA3EAP">WPA3-Enterprise Authentication</option>
+                      <option value="WPA2WPA3PSK">WPA2/WPA3-Personal Mixed Authentication</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-gray-300">Advanced Encryption</label>
+                    <select
+                      value={wifiCrypt}
+                      onChange={(e) => setWifiCrypt(e.target.value)}
+                      className="w-full px-3 py-2 text-xs bg-gray-900 border border-gray-800 rounded-lg text-gray-300 focus:outline-none"
+                    >
+                      <option value="none">None Encryption</option>
+                      <option value="WEP">WEP Encryption</option>
+                      <option value="TKIP">TKIP Encryption</option>
+                      <option value="AES">AES Encryption</option>
+                      <option value="AESTKIP">AES-TKIP Mixed Encryption</option>
                     </select>
                   </div>
                   <div className="sm:col-span-2 flex items-center gap-2 text-xs text-gray-300">
@@ -973,7 +1120,62 @@ export default function WriteView({
                       onChange={(e) => setMimeData(e.target.value)}
                       placeholder="Enter raw MIME text stream..."
                       className="w-full h-20 p-3 text-xs glass-input rounded-lg resize-none text-gray-200 font-mono"
+                      disabled={!!mimeFileBase64}
                     />
+                    {mimeFileBase64 && (
+                      <p className="text-[10px] text-amber-500">
+                        Notice: Text payload is disabled because a binary file is uploaded.
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-1.5 border-t border-gray-900 pt-3">
+                    <label className="text-xs font-semibold text-gray-300 block">Or Upload Binary/Plain File Payload</label>
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                      <input
+                        type="file"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              const base64String = (reader.result as string).split(',')[1];
+                              setMimeFileBase64(base64String);
+                              setMimeFileName(file.name);
+                              setMimeType(file.type || 'application/octet-stream');
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        className="hidden"
+                        id="mime-file-upload"
+                      />
+                      <label
+                        htmlFor="mime-file-upload"
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-xs text-white font-bold rounded-lg cursor-pointer flex items-center justify-center gap-1.5 transition-colors text-center"
+                      >
+                        Choose File
+                      </label>
+                      {mimeFileName ? (
+                        <div className="flex items-center gap-2 text-xs text-emerald-400">
+                          <span>Attached: <strong>{mimeFileName}</strong></span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMimeFileName('');
+                              setMimeFileBase64('');
+                            }}
+                            className="text-gray-500 hover:text-red-400 font-bold text-sm"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-500">No file attached (falls back to text payload above)</span>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-gray-500">
+                      Easily embed business vCard profiles, images, JSON files, or custom structured binary arrays (application/octet-stream).
+                    </p>
                   </div>
                 </div>
               )}
@@ -1063,6 +1265,112 @@ export default function WriteView({
                   </div>
                 </div>
               )}
+
+              {/* 15. Local Record */}
+              {selectedType === 'local' && (
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="p-4 bg-blue-950/20 border border-blue-500/20 rounded-xl flex items-start gap-3">
+                    <Code className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <h4 className="font-bold text-xs text-blue-300">NDEF Local Record</h4>
+                      <p className="text-[11px] text-gray-400 leading-relaxed">
+                        Local records are used for domain-specific local payloads inside parent NDEF structures. They must begin with a colon <code>:</code> (e.g. <code>:mytype</code>).
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-gray-300">Local Record Type</label>
+                    <input
+                      type="text"
+                      value={localType}
+                      onChange={(e) => setLocalType(e.target.value)}
+                      placeholder=":mytype"
+                      className="w-full px-3 py-2 text-xs glass-input rounded-lg text-gray-200 font-mono"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-gray-300">Local Record Payload</label>
+                    <textarea
+                      value={localPayload}
+                      onChange={(e) => setLocalPayload(e.target.value)}
+                      placeholder="Enter raw payload string or JSON..."
+                      className="w-full h-20 p-3 text-xs glass-input rounded-lg resize-none text-gray-200 font-mono"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* 18. External Record */}
+              {selectedType === 'external' && (
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="p-4 bg-purple-950/20 border border-purple-500/20 rounded-xl flex items-start gap-3">
+                    <Code className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <h4 className="font-bold text-xs text-purple-300">NDEF External Record</h4>
+                      <p className="text-[11px] text-gray-400 leading-relaxed">
+                        External records are used for domain-scoped custom formats (e.g. <code>com.example:mytarget</code>). They must contain a domain name, a colon, and a type name.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-gray-300">External Domain & Type (domain:type)</label>
+                    <input
+                      type="text"
+                      value={externalType}
+                      onChange={(e) => setExternalType(e.target.value)}
+                      placeholder="com.example:mytarget"
+                      className="w-full px-3 py-2 text-xs glass-input rounded-lg text-gray-200 font-mono"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-gray-300">External Payload</label>
+                    <textarea
+                      value={externalPayload}
+                      onChange={(e) => setExternalPayload(e.target.value)}
+                      placeholder="Enter raw external payload data or JSON..."
+                      className="w-full h-20 p-3 text-xs glass-input rounded-lg resize-none text-gray-200 font-mono"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* 16. Empty Record */}
+              {selectedType === 'empty' && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-gray-950 border border-gray-800 rounded-xl flex items-start gap-3">
+                    <Trash2 className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <h4 className="font-bold text-xs text-gray-300">Empty Record Payload</h4>
+                      <p className="text-[11px] text-gray-400 leading-relaxed">
+                        An empty record indicates the presence of a record but with no payload, type, or identifier. It serves as a marker or terminator inside multi-record tags.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 17. Lock Tag (Permanent) */}
+              {selectedType === 'lock' && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-red-950/35 border border-red-500/40 rounded-xl flex items-start gap-3">
+                    <Lock className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <h4 className="font-bold text-xs text-red-300">PERMANENT DESTRUCTIVE ACTION WARNING</h4>
+                      <p className="text-[11px] text-gray-400 leading-relaxed font-semibold">
+                        This action uses the NDEF <code>makeReadOnly()</code> command. Once locked, the tag CANNOT be written to, formatted, or erased EVER again. It becomes permanently read-only!
+                      </p>
+                    </div>
+                  </div>
+                  <div className="bg-gray-900/40 p-4 border border-gray-850/60 rounded-xl text-xs space-y-2">
+                    <div className="font-bold text-gray-200">Tag Locking Terms</div>
+                    <ul className="list-disc pl-4 text-gray-400 space-y-1">
+                      <li>Irreversible hardware register state fuse.</li>
+                      <li>Smartphones can still read the data indefinitely.</li>
+                      <li>Useful for commercial product tags, public posters, or read-only tokens.</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Quick Presets / User Saved Custom Templates list in-line */}
@@ -1084,9 +1392,9 @@ export default function WriteView({
               </div>
             )}
 
-            {/* Program tag buttons */}
+             {/* Program tag buttons */}
             <div className="border-t border-gray-800/80 pt-5 flex flex-col sm:flex-row gap-3">
-              {selectedType !== 'erase' && selectedType !== 'format' && (
+              {selectedType !== 'erase' && selectedType !== 'format' && selectedType !== 'lock' && (
                 <button
                   type="button"
                   onClick={() => setShowSaveModal(true)}
@@ -1099,15 +1407,15 @@ export default function WriteView({
               <button
                 type="button"
                 onClick={executeNDEFWrite}
-                disabled={isWriting || !report.readyToUse}
+                disabled={isWriting}
                 className={`flex-1 py-2.5 text-white text-xs font-bold rounded-lg cursor-pointer transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 ${
-                  !report.readyToUse
-                    ? 'bg-gray-800 border border-gray-700 text-gray-500 cursor-not-allowed opacity-60'
-                    : selectedType === 'erase' 
-                    ? 'bg-red-600 hover:bg-red-500 disabled:bg-red-800 shadow-red-500/10' 
-                    : selectedType === 'format'
-                    ? 'bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 shadow-blue-500/10'
-                    : 'bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 shadow-blue-500/15'
+                  selectedType === 'erase' 
+                  ? 'bg-red-600 hover:bg-red-500 disabled:bg-red-800 shadow-red-500/10' 
+                  : selectedType === 'format'
+                  ? 'bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 shadow-blue-500/10'
+                  : selectedType === 'lock'
+                  ? 'bg-red-700 hover:bg-red-600 disabled:bg-red-900 shadow-red-700/15 font-extrabold'
+                  : 'bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 shadow-blue-500/15'
                 }`}
               >
                 {isWriting ? (
@@ -1123,6 +1431,10 @@ export default function WriteView({
                     ) : selectedType === 'format' ? (
                       <>
                         <RefreshCw className="w-4 h-4" /> Format Tag as NDEF
+                      </>
+                    ) : selectedType === 'lock' ? (
+                      <>
+                        <Lock className="w-4 h-4 animate-pulse" /> Lock Tag Permanently
                       </>
                     ) : (
                       <>

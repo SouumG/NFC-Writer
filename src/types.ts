@@ -14,6 +14,10 @@ export type NFCRecordType =
   | 'multi'
   | 'erase'
   | 'format'
+  | 'lock'
+  | 'local'
+  | 'empty'
+  | 'external'
   | 'aar'; // Android Application Record
 
 export interface NFCTemplate {
@@ -25,6 +29,8 @@ export interface NFCTemplate {
   // Payload structures based on type
   payload: {
     text?: string;
+    textLang?: string;
+    textEncoding?: 'utf-8' | 'utf-16';
     url?: string;
     phoneNumber?: string;
     emailAddress?: string;
@@ -40,7 +46,9 @@ export interface NFCTemplate {
     vcardAddress?: string;
     wifiSsid?: string;
     wifiPassword?: string;
-    wifiEncryption?: 'WEP' | 'WPA' | 'none';
+    wifiEncryption?: 'WEP' | 'WPA' | 'none' | 'WPA3' | 'WPA2_WPA3';
+    wifiAuth?: string;
+    wifiCrypt?: string;
     wifiHidden?: boolean;
     calendarTitle?: string;
     calendarStart?: string;
@@ -55,6 +63,10 @@ export interface NFCTemplate {
     mimeData?: string;
     customType?: string;
     customPayload?: string;
+    localType?: string;
+    localPayload?: string;
+    externalType?: string;
+    externalPayload?: string;
     aarPackageName?: string;
     multiRecords?: Array<{ type: NFCRecordType; payload: any }>;
   };

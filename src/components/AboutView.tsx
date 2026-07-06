@@ -26,7 +26,7 @@ export default function AboutView() {
             <h3 className="font-bold text-sm text-gray-200">Contactless Engineering Built Client-Side</h3>
             <div className="text-xs text-gray-400 leading-relaxed space-y-3 select-text">
               <p>
-                NFC Writer (v1.1.6) is a robust, full-stack client-side Progressive Web Application designed for programming, scanning, parsing, and diagnosing high-frequency RFID/NFC chips. Built entirely in React and styled with a glassmorphism theme, this applet operates 100% locally on your browser.
+                NFC Writer (v1.1.10) is a robust, full-stack client-side Progressive Web Application designed for programming, scanning, parsing, and diagnosing high-frequency RFID/NFC chips. Built entirely in React and styled with a glassmorphism theme, this applet operates 100% locally on your browser.
               </p>
               <p>
                 By avoiding backend databases, your personal Wi-Fi configurations, phone lines, coordinates, or vCard details are never uploaded or synced to external servers, guaranteeing maximum privacy and cryptographic security.
@@ -48,8 +48,66 @@ export default function AboutView() {
             <div className="space-y-4 text-xs font-mono">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-gray-200">v1.1.6</span>
-                  <span className="text-[10px] text-emerald-400 font-bold uppercase">• Reverted Cancel Scan Buttons &amp; Cleaned Up UX</span>
+                  <span className="font-bold text-gray-200">v1.1.10</span>
+                  <span className="text-[10px] text-emerald-400 font-bold uppercase">• Interactive Dashboard Fixes &amp; Unified Hardware Button Event Handlers</span>
+                </div>
+                <ul className="list-disc pl-4 text-gray-400 text-[11px] space-y-0.5 leading-relaxed">
+                  <li>Wired up all interactive and placeholder buttons across the tools, settings, and dashboard terminals.</li>
+                  <li>Ensured visual buttons respond with appropriate native-like event triggers, dialogs, and user feedback.</li>
+                  <li>Optimized Web NFC scanning states and native reader initialization diagnostics.</li>
+                  <li>Added native support for WPA3 Personal (SAE) security profiles.</li>
+                  <li>Integrated support for WPA2/WPA3 Mixed security profiles to maximize device compatibility.</li>
+                  <li>Updated Wi-Fi connection NDEF string generation and parser components for backward compatibility.</li>
+                </ul>
+              </div>
+
+              <div className="space-y-1 border-t border-gray-900/50 pt-3">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-gray-400">v1.1.9</span>
+                  <span className="text-[10px] text-gray-500 font-bold uppercase">• Advanced Wi-Fi Config, Handover Select &amp; Custom External Record Forms</span>
+                </div>
+                <ul className="list-disc pl-4 text-gray-400 text-[11px] space-y-0.5 leading-relaxed">
+                  <li>Added granular selectors for all standard WPA/WPA2/WPA3 authentication configurations and TKIP/AES/WEP encryption parameters.</li>
+                  <li>Implemented full visual widgets in the scanner reader to decode and present advanced Wi-Fi profiles correctly.</li>
+                  <li>Integrated interactive forms for custom external record domains and local scopes in the programming suite.</li>
+                  <li>Added visual card structures for Handover Select (Hs) connection protocols and custom local scopes.</li>
+                </ul>
+              </div>
+
+              <div className="space-y-1 border-t border-gray-900/50 pt-3">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-gray-400">v1.1.8</span>
+                  <span className="text-[10px] text-gray-500 font-bold uppercase">• Complete Contactless Wi-Fi/NDEF Encodings &amp; Auto-Pause</span>
+                </div>
+                <ul className="list-disc pl-4 text-gray-400 text-[11px] space-y-0.5 leading-relaxed">
+                  <li>Added fully spec-compliant Wi-Fi authentication and encryption protocol configuration suite.</li>
+                  <li>Integrated Device Provisioning Protocol / WPA3 Wi-Fi links (DPP://) and deep-linking schemas.</li>
+                  <li>Enabled domain-scoped custom external record types with strict format validation.</li>
+                  <li>Added Handover Select (Hs) local record parser and protocol state.</li>
+                  <li>Implemented background execution auto-pause on page tab switches (Page Visibility API) to save device battery and prevent overlapping scan handlers.</li>
+                  <li>Enhanced error telemetry tracking with onreadingerror failures and detailed status diagnostics.</li>
+                </ul>
+              </div>
+
+              <div className="space-y-1 border-t border-gray-900/50 pt-3">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-gray-400">v1.1.7</span>
+                  <span className="text-[10px] text-gray-500 font-bold uppercase">• Advanced Record Operations &amp; Permanent Locks</span>
+                </div>
+                <ul className="list-disc pl-4 text-gray-400 text-[11px] space-y-0.5 leading-relaxed">
+                  <li>Implemented Lock Tags Permanently (makeReadOnly()) functionality directly from the terminal with diagnostic warning.</li>
+                  <li>Expanded text record creator to support custom language tags (en, es) and UTF-8/UTF-16 encoding configurations.</li>
+                  <li>Enhanced URL redirect inputs with deep links and custom protocols (mailto:, tel:, sms:).</li>
+                  <li>Added native NDEF support for empty, local, and domain-scoped external record types.</li>
+                  <li>Integrated binary payload files and custom application/octet-stream buffers inside MIME records.</li>
+                  <li>Upgraded event listening telemetry for successful onreading and failed onreadingerror triggers.</li>
+                </ul>
+              </div>
+
+              <div className="space-y-1 border-t border-gray-900/50 pt-3">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-gray-400">v1.1.6</span>
+                  <span className="text-[10px] text-gray-500 font-bold uppercase">• Reverted Cancel Scan Buttons &amp; Cleaned Up UX</span>
                 </div>
                 <ul className="list-disc pl-4 text-gray-400 text-[11px] space-y-0.5 leading-relaxed">
                   <li>Changed read scanner action text back to "Cancel Scan" and write action button back to "Cancel".</li>

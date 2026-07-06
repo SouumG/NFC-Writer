@@ -28,7 +28,7 @@ interface ReadViewProps {
 }
 
 export default function ReadView({ report, onAddHistory, onShowToast }: ReadViewProps) {
-  const [scanState, setScanState] = useState<'idle' | 'scanning' | 'success' | 'error'>('idle');
+  const [scanState, setScanState] = useState<'idle' | 'scanning' | 'success' | 'error' | 'paused'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [serialNumber, setSerialNumber] = useState('');
   const [records, setRecords] = useState<any[]>([]);
@@ -37,14 +37,26 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
   
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Clean up scanning on unmount to prevent active Web NFC locks
+  // Handle visibility change to auto-pause and auto-resume scanning
   useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && scanState === 'scanning') {
+        setScanLogs(prev => [...prev, 'Page visibility hidden. Auto-pausing NFC scanning context to preserve battery...']);
+        stopScanning(true);
+        setScanState('paused');
+      } else if (!document.hidden && scanState === 'paused') {
+        setScanLogs(prev => [...prev, 'Page visibility restored. Resuming NFC scanning context...']);
+        startRealScan();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []);
+  }, [scanState]);
 
   // Stop scanning
   const stopScanning = (keepState = false) => {
@@ -60,15 +72,8 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
   // Real Web NFC Scan
   const startRealScan = async () => {
     try {
-      let isIframe = false;
-      try {
-        isIframe = window.self !== window.top;
-      } catch (e) {
-        isIframe = true;
-      }
-      
-      if (isIframe || !('NDEFReader' in window)) {
-        setErrorMessage("Web NFC is restricted or unsupported in this browser/environment. Web NFC requires HTTPS, a compatible Android mobile device, and must run in a top-level tab (not inside an iframe).");
+      if (!('NDEFReader' in window)) {
+        setErrorMessage("Web NFC is unsupported on this browser or platform. Please ensure you are using a compatible browser (such as Google Chrome on Android) over HTTPS.");
         setScanState('error');
         return;
       }
@@ -138,7 +143,9 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
               mediaType: record.mediaType || '',
               id: record.id || '',
               rawData: bytes,
-              text: payloadText
+              text: payloadText,
+              lang: record.lang || '',
+              encoding: record.encoding || 'utf-8'
             };
           });
 
@@ -192,7 +199,13 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
         return;
       }
       console.error(err);
-      setErrorMessage(err.message || "Failed to start NFC scan.");
+      let friendlyError = err.message || "Failed to start NFC scan.";
+      if (err.name === 'NotAllowedError') {
+        friendlyError = "NFC permission denied. Note that Web NFC is restricted inside iframes. Please open the app in a NEW TAB to scan tags.";
+      } else if (err.name === 'SecurityError') {
+        friendlyError = "Security constraint: Web NFC requires a secure origin (HTTPS) and must be loaded in a top-level window. Open the app in a NEW TAB.";
+      }
+      setErrorMessage(friendlyError);
       setScanState('error');
     }
   };
@@ -312,7 +325,9 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
                 <div className="absolute inset-0 rounded-full border-2 border-t-transparent border-blue-500 animate-spin"></div>
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-blue-300">Searching for Contactless Tag...</h3>
+                <h3 className="text-sm font-semibold text-blue-300">
+                  Searching for Contactless Tag...
+                </h3>
                 <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">
                   Hold tag firmly against the back of your device.
                 </p>
@@ -393,6 +408,8 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
                 let isWifi = record.text.startsWith('WIFI:');
                 let isVCard = record.text.includes('BEGIN:VCARD');
                 let isLocation = record.text.startsWith('geo:');
+                let isHs = record.recordType === 'Hs' || record.recordType === ':Hs' || record.recordType === 'handover' || record.recordType === ':handover';
+                let isLocalRecord = record.recordType && record.recordType.startsWith(':') && !isHs;
                 let isJson = false;
                 try {
                   if (record.mediaType === 'application/json' || (record.text.startsWith('{') && record.text.endsWith('}'))) {
@@ -400,6 +417,17 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
                     isJson = true;
                   }
                 } catch(e){}
+
+                let isImage = record.mediaType && record.mediaType.startsWith('image/');
+                let imageUrl = '';
+                if (isImage && record.rawData && record.rawData.length > 0) {
+                  try {
+                    const blob = new Blob([record.rawData], { type: record.mediaType });
+                    imageUrl = URL.createObjectURL(blob);
+                  } catch(e) {
+                    console.error("Failed to generate Object URL for image", e);
+                  }
+                }
 
                 return (
                   <div key={index} className="p-4 bg-gray-900/30 rounded-xl border border-gray-800/80 space-y-3">
@@ -463,7 +491,12 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
                                 <div className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">Wi-Fi Connection Payload</div>
                                 <div className="text-xs text-gray-200 font-bold mt-1">Network Name (SSID): <span className="font-mono text-gray-100">{wifiInfo.wifiSsid}</span></div>
                                 <div className="text-[11px] text-gray-400 mt-0.5">Password: <span className="font-mono select-all bg-gray-900 px-1 py-0.5 rounded border border-gray-800 text-gray-200">{wifiInfo.wifiPassword}</span></div>
-                                <div className="text-[10px] text-gray-500 mt-1">Encryption: {wifiInfo.wifiEncryption} • Hidden: {wifiInfo.wifiHidden ? 'Yes' : 'No'}</div>
+                                <div className="text-[10px] text-gray-500 mt-1">
+                                  Encryption: {wifiInfo.wifiEncryption}
+                                  {wifiInfo.wifiAuth && wifiInfo.wifiAuth !== 'none' && ` (${wifiInfo.wifiAuth})`}
+                                  {wifiInfo.wifiCrypt && wifiInfo.wifiCrypt !== 'none' && ` • Crypt: ${wifiInfo.wifiCrypt}`}
+                                  • Hidden: {wifiInfo.wifiHidden ? 'Yes' : 'No'}
+                                </div>
                               </div>
                               <div className="p-2 bg-emerald-900/30 text-emerald-400 border border-emerald-500/20 rounded-lg shrink-0">
                                 <Wifi className="w-5 h-5" />
@@ -521,17 +554,76 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
                         })()}
 
                         {/* WIDGET: JSON Format */}
-                        {isJson && (
+                        {isJson && !isImage && (
                           <div className="p-3 bg-purple-950/15 border border-purple-500/10 rounded-lg space-y-1.5 font-mono text-[10px]">
                             <div className="text-[9px] text-purple-400 font-semibold uppercase tracking-wider font-sans">Structured JSON Message</div>
                             <pre className="text-gray-300 overflow-x-auto whitespace-pre p-2 bg-gray-950 rounded border border-gray-900">{JSON.stringify(JSON.parse(record.text), null, 2)}</pre>
                           </div>
                         )}
 
+                        {/* WIDGET: Embedded Image payload */}
+                        {isImage && imageUrl && (
+                          <div className="p-3 bg-gray-950 rounded-lg border border-gray-900 flex flex-col items-center gap-2">
+                            <div className="text-[10px] text-blue-400 font-semibold uppercase tracking-wider self-start">Embedded NFC Image payload ({record.mediaType})</div>
+                            <img
+                              src={imageUrl}
+                              alt="NFC Payload"
+                              className="max-h-64 object-contain rounded border border-gray-800"
+                              referrerPolicy="no-referrer"
+                            />
+                          </div>
+                        )}
+
+                        {/* WIDGET: Handover Select (Hs) */}
+                        {isHs && (
+                          <div className="p-3 bg-cyan-950/20 border border-cyan-500/10 rounded-lg flex items-start gap-3">
+                            <div className="p-2.5 bg-cyan-900/30 text-cyan-400 border border-cyan-500/20 rounded-lg shrink-0">
+                              <Share2 className="w-5 h-5 animate-pulse" />
+                            </div>
+                            <div className="flex-1 min-w-0 text-xs">
+                              <div className="text-[10px] text-cyan-400 font-semibold uppercase tracking-wider">NFC Handover Select (Hs) Protocol</div>
+                              <div className="text-sm font-bold text-gray-200 mt-1">Connection Handover Negotiator</div>
+                              <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
+                                Facilitates automatic device pairing. Standard NFC hardware uses this handover protocol to establish high-speed wireless Direct sessions.
+                              </p>
+                              <div className="mt-2 text-gray-300 font-mono text-[10px] bg-gray-950/80 p-2 rounded border border-gray-900 overflow-x-auto">
+                                Payload: {record.text}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* WIDGET: Local Record */}
+                        {isLocalRecord && (
+                          <div className="p-3 bg-amber-950/15 border border-amber-500/10 rounded-lg flex items-start gap-3">
+                            <div className="p-2.5 bg-amber-900/30 text-amber-400 border border-amber-500/20 rounded-lg shrink-0">
+                              <Code className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1 min-w-0 text-xs">
+                              <div className="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Local NDEF Record Context</div>
+                              <div className="text-sm font-bold text-gray-200 mt-1">Type Scope: {record.recordType}</div>
+                              <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
+                                Used internally within application frameworks to bundle private context payloads.
+                              </p>
+                              <div className="mt-2 text-gray-300 font-mono text-[10px] bg-gray-950/80 p-2 rounded border border-gray-900 overflow-x-auto">
+                                Payload: {record.text}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         {/* DEFAULT PAYLOAD: Standard display text */}
-                        {!isUrl && !isWifi && !isVCard && !isLocation && !isJson && (
+                        {!isUrl && !isWifi && !isVCard && !isLocation && !isJson && !isImage && !isHs && !isLocalRecord && (
                           <div className="p-3 bg-gray-900 border border-gray-800 rounded-lg text-xs leading-relaxed text-gray-300 select-text whitespace-pre-wrap">
                             {record.text}
+                          </div>
+                        )}
+
+                        {/* Text Record Metadata Tags (lang/encoding) */}
+                        {record.recordType === 'text' && (
+                          <div className="text-[10px] text-gray-500 font-mono flex items-center gap-4 px-1 pt-1">
+                            <span>Language: <strong className="text-gray-300 font-semibold">{record.lang || 'en'}</strong></span>
+                            <span>Encoding: <strong className="text-gray-300 font-semibold">{record.encoding || 'utf-8'}</strong></span>
                           </div>
                         )}
                       </div>

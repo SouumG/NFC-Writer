@@ -395,11 +395,12 @@ export function generateVCard(payload: NFCTemplate['payload']): string {
 export function generateWifiString(payload: NFCTemplate['payload']): string {
   const ssid = payload.wifiSsid || '';
   const pass = payload.wifiPassword || '';
-  const auth = payload.wifiEncryption || 'WPA';
+  const auth = payload.wifiAuth || payload.wifiEncryption || 'WPA';
+  const crypt = payload.wifiCrypt ? `E:${payload.wifiCrypt}` : '';
   const hidden = payload.wifiHidden ? 'H:true' : 'H:false';
   
-  // Format: WIFI:S:SSID;T:WPA;P:PASSWORD;H:false;;
-  return `WIFI:S:${ssid};T:${auth};P:${pass};${hidden};;`;
+  // Format: WIFI:S:SSID;T:WPA;P:PASSWORD;E:CRYPT;H:false;;
+  return `WIFI:S:${ssid};T:${auth};P:${pass};${crypt ? crypt + ';' : ''}${hidden};;`;
 }
 
 // iCalendar Event Generator
@@ -435,6 +436,8 @@ export function parseWifiString(wifiStr: string): Partial<NFCTemplate['payload']
     wifiSsid: '',
     wifiPassword: '',
     wifiEncryption: 'none',
+    wifiAuth: '',
+    wifiCrypt: '',
     wifiHidden: false
   };
 
@@ -444,8 +447,22 @@ export function parseWifiString(wifiStr: string): Partial<NFCTemplate['payload']
     } else if (part.startsWith('P:')) {
       result.wifiPassword = part.substring(2);
     } else if (part.startsWith('T:')) {
-      const enc = part.substring(2).toUpperCase();
-      result.wifiEncryption = enc === 'WEP' ? 'WEP' : enc === 'WPA' || enc === 'WPA2' ? 'WPA' : 'none';
+      const enc = part.substring(2);
+      result.wifiAuth = enc;
+      const encUpper = enc.toUpperCase();
+      if (encUpper === 'WEP') {
+        result.wifiEncryption = 'WEP';
+      } else if (encUpper.includes('WPA3') || encUpper === 'SAE') {
+        result.wifiEncryption = 'WPA3';
+      } else if (encUpper.includes('WPA2_WPA3') || encUpper.includes('WPA3_WPA2') || (encUpper.includes('WPA') && encUpper.includes('WPA3'))) {
+        result.wifiEncryption = 'WPA2_WPA3';
+      } else if (encUpper.startsWith('WPA')) {
+        result.wifiEncryption = 'WPA';
+      } else {
+        result.wifiEncryption = 'none';
+      }
+    } else if (part.startsWith('E:')) {
+      result.wifiCrypt = part.substring(2);
     } else if (part.startsWith('H:')) {
       result.wifiHidden = part.substring(2).toLowerCase() === 'true';
     }

@@ -22,6 +22,10 @@ interface NDEFScanOptions {
   signal?: AbortSignal;
 }
 
+interface NDEFMakeReadOnlyOptions {
+  signal?: AbortSignal;
+}
+
 declare class NDEFReader {
   constructor();
   scan(options?: NDEFScanOptions): Promise<void>;
@@ -29,6 +33,7 @@ declare class NDEFReader {
     message: NDEFMessageInit | string | BufferSource,
     options?: NDEFWriteOptions
   ): Promise<void>;
+  makeReadOnly(options?: NDEFMakeReadOnlyOptions): Promise<void>;
   onreading: (this: NDEFReader, ev: NDEFReadingEvent) => any;
   onreadingerror: (this: NDEFReader, ev: Event) => any;
 }
