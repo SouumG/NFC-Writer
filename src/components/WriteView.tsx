@@ -104,6 +104,17 @@ export default function WriteView({
   const [templateDesc, setTemplateDesc] = useState('');
   const [showSaveModal, setShowSaveModal] = useState(false);
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Clean up on unmount to prevent active locks
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
   // Generate NDEF message array based on selected type
   const compileNDEFMessage = () => {
     const recordsList: any[] = [];
@@ -268,16 +279,17 @@ export default function WriteView({
 
     try {
       const ndef = new NDEFReader();
+      abortControllerRef.current = new AbortController();
       setWriteLogs(prev => [...prev, 'Listening for target NTAG sector...', 'Align your NFC tag...']);
       
       if (selectedType === 'erase') {
         setWriteLogs(prev => [...prev, 'Executing Erase Operation: overwriting with blank NDEF records...']);
-        await ndef.write({ records: [{ recordType: 'text', data: '' }] });
+        await ndef.write({ records: [{ recordType: 'text', data: '' }] }, { signal: abortControllerRef.current.signal });
       } else if (selectedType === 'format') {
         setWriteLogs(prev => [...prev, 'Executing NDEF Format Operation: establishing clean payload registry...']);
-        await ndef.write({ records: [{ recordType: 'text', data: '' }] });
+        await ndef.write({ records: [{ recordType: 'text', data: '' }] }, { signal: abortControllerRef.current.signal });
       } else {
-        await ndef.write({ records });
+        await ndef.write({ records }, { signal: abortControllerRef.current.signal });
       }
       
       setWriteLogs(prev => [...prev, 'Tag recognized.', 'Writing NDEF payload sectors...']);
@@ -309,6 +321,10 @@ export default function WriteView({
       });
 
     } catch (err: any) {
+      if (err.name === 'AbortError') {
+        console.log('NDEF write session aborted/cancelled.');
+        return;
+      }
       console.error(err);
       let friendlyError = err.message || 'Tag disconnected. Hold tag firmly near phone.';
       if (err.name === 'NotAllowedError') {
@@ -1170,6 +1186,21 @@ export default function WriteView({
             {/* Modal action triggers */}
             <div className="flex flex-col gap-2 pt-2">
               <div className="flex gap-3">
+                {writeResult === null && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (abortControllerRef.current) {
+                        abortControllerRef.current.abort();
+                        abortControllerRef.current = null;
+                      }
+                      setIsWriting(false);
+                    }}
+                    className="w-full py-2 bg-red-600 hover:bg-red-500 text-xs font-semibold text-white rounded-lg cursor-pointer transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    Cancel
+                  </button>
+                )}
                 {writeResult !== null && (
                   <button
                     type="button"

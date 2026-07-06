@@ -26,7 +26,7 @@ export default function AboutView() {
             <h3 className="font-bold text-sm text-gray-200">Contactless Engineering Built Client-Side</h3>
             <div className="text-xs text-gray-400 leading-relaxed space-y-3 select-text">
               <p>
-                NFC Writer (v1.1.5) is a robust, full-stack client-side Progressive Web Application designed for programming, scanning, parsing, and diagnosing high-frequency RFID/NFC chips. Built entirely in React and styled with a glassmorphism theme, this applet operates 100% locally on your browser.
+                NFC Writer (v1.1.6) is a robust, full-stack client-side Progressive Web Application designed for programming, scanning, parsing, and diagnosing high-frequency RFID/NFC chips. Built entirely in React and styled with a glassmorphism theme, this applet operates 100% locally on your browser.
               </p>
               <p>
                 By avoiding backend databases, your personal Wi-Fi configurations, phone lines, coordinates, or vCard details are never uploaded or synced to external servers, guaranteeing maximum privacy and cryptographic security.
@@ -48,10 +48,22 @@ export default function AboutView() {
             <div className="space-y-4 text-xs font-mono">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-gray-200">v1.1.5</span>
-                  <span className="text-[10px] text-emerald-400 font-bold uppercase">• Professional Download Animations &amp; Diagnostic Feedback</span>
+                  <span className="font-bold text-gray-200">v1.1.6</span>
+                  <span className="text-[10px] text-emerald-400 font-bold uppercase">• Reverted Cancel Scan Buttons &amp; Cleaned Up UX</span>
                 </div>
                 <ul className="list-disc pl-4 text-gray-400 text-[11px] space-y-0.5 leading-relaxed">
+                  <li>Changed read scanner action text back to "Cancel Scan" and write action button back to "Cancel".</li>
+                  <li>Fixed diagnostic warning status badge layout and vertical alignment to prevent visual overflows on narrower mobile devices.</li>
+                  <li>Removed toast notification popup triggers upon manual scan cancellations, keeping the visual UI clean and non-disruptive.</li>
+                </ul>
+              </div>
+
+              <div className="space-y-1 border-t border-gray-900/50 pt-3">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-gray-400">v1.1.5</span>
+                  <span className="text-[10px] text-gray-500 font-bold uppercase">• Professional Download Animations &amp; Diagnostic Feedback</span>
+                </div>
+                <ul className="list-disc pl-4 text-gray-450 text-[11px] space-y-0.5 leading-relaxed">
                   <li>Added professional asynchronous download transitions with dynamic status spinners to the templates directory and history log CSV/JSON exports.</li>
                   <li>Integrated a real-time assessing state with spinning indicator and progress toast feedback to the Hardware Re-Diagnose button, resolving static clicks.</li>
                   <li>Embedded a high-fidelity "Download QR PNG" action button directly below the QR code generator canvas.</li>

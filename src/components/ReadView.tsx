@@ -245,7 +245,7 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
           {scanState === 'scanning' ? (
             <button
               type="button"
-              onClick={stopScanning}
+              onClick={() => stopScanning()}
               className="w-full sm:w-auto px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" /> Cancel Scan
@@ -253,13 +253,8 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
           ) : (
             <button
               type="button"
-              disabled={!report.readyToUse}
               onClick={startRealScan}
-              className={`w-full sm:w-auto px-5 py-2.5 text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-95 ${
-                report.readyToUse 
-                  ? 'bg-blue-600 hover:bg-blue-500 shadow-blue-500/10' 
-                  : 'bg-gray-800 border border-gray-700 text-gray-500 cursor-not-allowed opacity-60'
-              }`}
+              className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-500 shadow-blue-500/10 text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-95"
             >
               <Scan className="w-4 h-4" /> Start Live Scan
             </button>

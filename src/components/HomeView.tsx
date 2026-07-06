@@ -46,7 +46,7 @@ export default function HomeView({
         <div className="flex-1 space-y-4 text-center md:text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full text-xs font-semibold">
             <Flame className="w-3.5 h-3.5 animate-pulse" />
-            <span>NFC suite v1.1.5</span>
+            <span>NFC suite v1.1.6</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-blue-400">
             Write. Read. Format. <br />Contactless Tags.
@@ -114,12 +114,12 @@ export default function HomeView({
         {/* NFC Capability status card */}
         <div className="lg:col-span-2 glass-panel rounded-xl p-6 flex flex-col justify-between space-y-4">
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <Smartphone className="w-5 h-5 text-blue-400" />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+              <h2 className="text-lg font-bold flex items-center gap-2 text-gray-100">
+                <Smartphone className="w-5 h-5 text-blue-400 shrink-0" />
                 <span>NFC Compatibility Diagnosis</span>
               </h2>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${report.readyToUse ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-amber-950 text-amber-400 border border-amber-800'}`}>
+              <span className={`text-xs px-2.5 py-1 rounded-full font-semibold inline-block shrink-0 self-start sm:self-auto ${report.readyToUse ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-amber-950 text-amber-400 border border-amber-800'}`}>
                 {report.readyToUse ? 'Ready' : 'Diagnostic Warning'}
               </span>
             </div>
