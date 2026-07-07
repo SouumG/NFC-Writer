@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.11] - 2026-07-07
+
+### Fixed
+- **Web NFC Scanner/Writer Cleanup**: Resolved a critical race condition where changing internal React states (e.g. from idle to scanning or compiling) immediately triggered the `useEffect` cleanup hook, prematurely aborting the active `AbortController` and causing instant scan/write cancellations and crashes.
+- **Reference Resolution**: Instantiated the `NDEFReader` object directly from `window.NDEFReader` to prevent global constructor references from raising reference errors in sandboxed browser frames.
+
+## [1.1.10] - 2026-07-07
+
+### Added
+- **Interactive Dashboard Fixes**: Wired up all interactive and placeholder buttons across the tools, settings, and dashboard terminals with appropriate native-like event triggers, dialogs, and user feedback.
+- **WPA3 Personal (SAE) Support**: Added native support for WPA3 Personal (SAE) and WPA2/WPA3 Mixed security profiles to maximize device compatibility.
+- **Web NFC Scanning Improvements**: Optimized Web NFC scanning states, native reader initialization diagnostics, and updated Wi-Fi connection NDEF string generation and parser components for backward compatibility.
+
 ## [1.1.3] - 2026-07-05
 
 ### Added

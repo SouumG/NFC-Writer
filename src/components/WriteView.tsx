@@ -119,11 +119,26 @@ export default function WriteView({
   const [showSaveModal, setShowSaveModal] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  const isWritingRef = useRef(isWriting);
 
-  // Clean up on unmount to prevent active locks, and handle tab visibility change to auto-pause
+  // Sync state ref
+  useEffect(() => {
+    isWritingRef.current = isWriting;
+  }, [isWriting]);
+
+  // Clean up on unmount to prevent active locks
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  // Handle tab visibility change to auto-pause
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && isWriting) {
+      if (document.hidden && isWritingRef.current) {
         setWriteLogs(prev => [...prev, 'Page visibility hidden. Auto-pausing NFC writer context to preserve battery...']);
         if (abortControllerRef.current) {
           abortControllerRef.current.abort();
@@ -134,12 +149,9 @@ export default function WriteView({
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [isWriting]);
+  }, []);
 
   // Generate NDEF message array based on selected type
   const compileNDEFMessage = () => {
@@ -343,7 +355,7 @@ export default function WriteView({
     }
 
     try {
-      const ndef = new NDEFReader();
+      const ndef = new (window as any).NDEFReader();
       abortControllerRef.current = new AbortController();
       setWriteLogs(prev => [...prev, 'Listening for target NTAG sector...', 'Align your NFC tag...']);
       

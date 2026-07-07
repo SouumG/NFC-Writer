@@ -36,26 +36,11 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
   const [scanLogs, setScanLogs] = useState<string[]>([]);
   
   const abortControllerRef = useRef<AbortController | null>(null);
+  const scanStateRef = useRef(scanState);
 
-  // Handle visibility change to auto-pause and auto-resume scanning
+  // Sync state ref
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden && scanState === 'scanning') {
-        setScanLogs(prev => [...prev, 'Page visibility hidden. Auto-pausing NFC scanning context to preserve battery...']);
-        stopScanning(true);
-        setScanState('paused');
-      } else if (!document.hidden && scanState === 'paused') {
-        setScanLogs(prev => [...prev, 'Page visibility restored. Resuming NFC scanning context...']);
-        startRealScan();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
+    scanStateRef.current = scanState;
   }, [scanState]);
 
   // Stop scanning
@@ -79,7 +64,8 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
         isIframe = true;
       }
       
-      if (isIframe || !('NDEFReader' in window)) {
+      const hasNDEFReader = typeof window !== 'undefined' && 'NDEFReader' in window;
+      if (isIframe || !hasNDEFReader) {
         setErrorMessage("Web NFC is restricted or unsupported in this browser/environment. Web NFC requires HTTPS, a compatible Android mobile device, and must run in a top-level tab (not inside an iframe).");
         setScanState('error');
         return;
@@ -93,7 +79,7 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
         'Listening for contactless transponder targets...'
       ]);
       
-      const ndef = new NDEFReader();
+      const ndef = new (window as any).NDEFReader();
       abortControllerRef.current = new AbortController();
       
       await ndef.scan({ signal: abortControllerRef.current.signal });
@@ -210,6 +196,33 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
       setScanState('error');
     }
   };
+
+  // Handle visibility change to auto-pause and auto-resume scanning
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && scanStateRef.current === 'scanning') {
+        setScanLogs(prev => [...prev, 'Page visibility hidden. Auto-pausing NFC scanning context to preserve battery...']);
+        stopScanning(true);
+        setScanState('paused');
+      } else if (!document.hidden && scanStateRef.current === 'paused') {
+        setScanLogs(prev => [...prev, 'Page visibility restored. Resuming NFC scanning context...']);
+        startRealScan();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  // Cleanup active scanning on component unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   // Convert array to hex string
   const toHexString = (byteArray: Uint8Array) => {
