@@ -23,7 +23,7 @@ import {
   Lock
 } from 'lucide-react';
 import { NFCRecordType, NFCTemplate, NFCHistoryEntry, NFCCompatibilityReport } from '../types';
-import { generateId, generateVCard, generateWifiString, generateCalendarString } from '../data';
+import { generateId, generateVCard, generateWifiString, generateCalendarString, generateWifiBinary } from '../data';
 
 interface WriteViewProps {
   report: NFCCompatibilityReport;
@@ -202,6 +202,25 @@ export default function WriteView({
         });
         break;
       case 'wifi':
+        try {
+          const wifiBin = generateWifiBinary({
+            wifiSsid,
+            wifiPassword: wifiPass,
+            wifiEncryption: wifiEnc,
+            wifiAuth: wifiAuth,
+            wifiCrypt: wifiCrypt,
+            wifiHidden
+          });
+          recordsList.push({
+            recordType: 'mime',
+            mediaType: 'application/vnd.wfa.wsc',
+            data: wifiBin
+          });
+        } catch (e) {
+          console.error("Binary WPS construction failed:", e);
+        }
+
+        // Standard URI fallback for third-party scanner apps and cross-OS compatibility (e.g. iOS)
         const wifiStr = generateWifiString({
           wifiSsid,
           wifiPassword: wifiPass,
@@ -211,9 +230,8 @@ export default function WriteView({
           wifiHidden
         });
         recordsList.push({
-          recordType: 'mime',
-          mediaType: 'application/vnd.wfa.wsc',
-          data: new TextEncoder().encode(wifiStr)
+          recordType: 'url',
+          data: wifiStr
         });
         break;
       case 'calendar':

@@ -559,7 +559,7 @@ export default function App() {
             &copy; 2026 NFC Writer. Hosted at: <a href="https://nfc.aiue.se/" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-blue-400 font-mono">https://nfc.aiue.se/</a>
           </div>
           <div className="flex items-center gap-3">
-            <span>Version v1.1.14 (Production)</span>
+            <span>Version v1.1.15 (Production)</span>
             <span>•</span>
             <button type="button" onClick={() => handleNavigate('legal')} className="hover:text-blue-400 cursor-pointer">Privacy & Terms</button>
           </div>

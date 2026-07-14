@@ -388,7 +388,7 @@ export function generateVCard(payload: NFCTemplate['payload']): string {
   }
 
   lines.push('END:VCARD');
-  return lines.join('\n');
+  return lines.join('\r\n');
 }
 
 // Wi-Fi Config Generator (Android and universal scanner format)
@@ -401,6 +401,123 @@ export function generateWifiString(payload: NFCTemplate['payload']): string {
   
   // Format: WIFI:S:SSID;T:WPA;P:PASSWORD;E:CRYPT;H:false;;
   return `WIFI:S:${ssid};T:${auth};P:${pass};${crypt ? crypt + ';' : ''}${hidden};;`;
+}
+
+// Wi-Fi WPS Binary Generator (application/vnd.wfa.wsc) for native Android Wi-Fi handovers
+export function generateWifiBinary(payload: any): Uint8Array {
+  const ssid = payload.wifiSsid || '';
+  const pass = payload.wifiPassword || '';
+  const authTypeStr = payload.wifiAuth || payload.wifiEncryption || 'WPA';
+  const cryptTypeStr = payload.wifiCrypt || '';
+
+  const encoder = new TextEncoder();
+  
+  // Helper to build a TLV block (Type-Length-Value)
+  const buildTlv = (id: number, val: Uint8Array): Uint8Array => {
+    const tlv = new Uint8Array(4 + val.length);
+    // Attribute ID (2 bytes, big-endian)
+    tlv[0] = (id >> 8) & 0xff;
+    tlv[1] = id & 0xff;
+    // Length (2 bytes, big-endian)
+    tlv[2] = (val.length >> 8) & 0xff;
+    tlv[3] = val.length & 0xff;
+    tlv.set(val, 4);
+    return tlv;
+  };
+
+  // 1. Build Credential inner TLVs
+  const innerBlocks: Uint8Array[] = [];
+
+  // Network Index: ID 0x1026, 1 byte, value 1
+  innerBlocks.push(buildTlv(0x1026, new Uint8Array([0x01])));
+
+  // SSID: ID 0x1045, string bytes
+  innerBlocks.push(buildTlv(0x1045, encoder.encode(ssid)));
+
+  // Auth Type: ID 0x1003, 2 bytes (big-endian)
+  // Value mapping:
+  // Open = 0x0001, WPAPSK = 0x0002, Shared = 0x0004, WPA = 0x0008, WPA2 = 0x0010, WPA2PSK = 0x0020
+  // WPA3-SAE = 0x0040 (WPS auth type identifier)
+  let authVal = 0x0020; // Default WPA2PSK
+  const upperAuth = authTypeStr.toUpperCase();
+  if (upperAuth === 'NONE' || upperAuth === 'OPEN') {
+    authVal = 0x0001;
+  } else if (upperAuth.includes('WEP')) {
+    authVal = 0x0001; // WEP usually uses Open auth with WEP encryption in WPS
+  } else if (upperAuth === 'WPAPSK' || upperAuth === 'WPA') {
+    authVal = 0x0002;
+  } else if (upperAuth === 'WPA2PSK' || upperAuth.includes('WPA2')) {
+    authVal = 0x0020;
+  } else if (upperAuth === 'WPA3PSK' || upperAuth.includes('WPA3') || upperAuth.includes('SAE')) {
+    authVal = 0x0040; // WPA3 Personal (SAE)
+  } else if (upperAuth.includes('WPA2WPA3') || upperAuth.includes('MIXED')) {
+    authVal = 0x0022; // WPA2-PSK & WPA3-SAE mixed
+  }
+  const authBytes = new Uint8Array([ (authVal >> 8) & 0xff, authVal & 0xff ]);
+  innerBlocks.push(buildTlv(0x1003, authBytes));
+
+  // Encryption Type: ID 0x100f, 2 bytes (big-endian)
+  // Value mapping:
+  // None = 0x0001, WEP = 0x0002, TKIP = 0x0004, AES = 0x0008, AES/TKIP mixed = 0x000c
+  let encVal = 0x0008; // Default AES
+  const upperCrypt = cryptTypeStr.toUpperCase();
+  if (upperCrypt === 'NONE') {
+    encVal = 0x0001;
+  } else if (upperCrypt === 'WEP') {
+    encVal = 0x0002;
+  } else if (upperCrypt === 'TKIP') {
+    encVal = 0x0004;
+  } else if (upperCrypt === 'AES' || upperCrypt.includes('CCMP')) {
+    encVal = 0x0008;
+  } else if (upperCrypt.includes('TKIP') && upperCrypt.includes('AES')) {
+    encVal = 0x000c;
+  }
+  const encBytes = new Uint8Array([ (encVal >> 8) & 0xff, encVal & 0xff ]);
+  innerBlocks.push(buildTlv(0x100f, encBytes));
+
+  // Network Key (Password): ID 0x1027, string bytes
+  // Only append Network Key if it's not open
+  if (authVal !== 0x0001 || encVal === 0x0002) {
+    innerBlocks.push(buildTlv(0x1027, encoder.encode(pass)));
+  }
+
+  // MAC Address: ID 0x1020, 6 bytes (wildcard FF:FF:FF:FF:FF:FF)
+  innerBlocks.push(buildTlv(0x1020, new Uint8Array([0xff, 0xff, 0xff, 0xff, 0xff, 0xff])));
+
+  // Concatenate all inner blocks
+  let innerLen = 0;
+  for (const block of innerBlocks) {
+    innerLen += block.length;
+  }
+  const innerPayload = new Uint8Array(innerLen);
+  let offset = 0;
+  for (const block of innerBlocks) {
+    innerPayload.set(block, offset);
+    offset += block.length;
+  }
+
+  // 2. Build Top-Level TLVs
+  const topBlocks: Uint8Array[] = [];
+
+  // Version: ID 0x104a, 1 byte, value 0x10 (WPS Version 1.0)
+  topBlocks.push(buildTlv(0x104a, new Uint8Array([0x10])));
+
+  // Credential Container: ID 0x100e, value is innerPayload
+  topBlocks.push(buildTlv(0x100e, innerPayload));
+
+  // Concatenate top level blocks
+  let topLen = 0;
+  for (const block of topBlocks) {
+    topLen += block.length;
+  }
+  const topPayload = new Uint8Array(topLen);
+  offset = 0;
+  for (const block of topBlocks) {
+    topPayload.set(block, offset);
+    offset += block.length;
+  }
+
+  return topPayload;
 }
 
 // iCalendar Event Generator
@@ -425,7 +542,7 @@ export function generateCalendarString(payload: NFCTemplate['payload']): string 
 
   lines.push('END:VEVENT');
   lines.push('END:VCALENDAR');
-  return lines.join('\n');
+  return lines.join('\r\n');
 }
 
 // Parses Wi-Fi string back to fields

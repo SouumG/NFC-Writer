@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.15] - 2026-07-14
+
+### Fixed
+- **Native Android Wi-Fi Connection Trigger**: Implemented full WPS (Wi-Fi Protected Setup) TLV big-endian binary compilation for the `application/vnd.wfa.wsc` MIME record type. This triggers native, automated connection dialog prompts on Android devices upon tag contact.
+- **Cross-Device Wi-Fi Backwards Compatibility**: Designed a dual-record sequence compiling the native binary WPS record followed immediately by a standard text-based `WIFI:` URI record, resolving third-party scanning app parsing limits on other platforms (e.g., iOS).
+- **CRLF Alignment for vCard & iCalendar**: Corrected the line break formatting for both vCard contacts (`text/vcard`) and iCalendar schedules (`text/calendar`) from Unix `\n` to standard network `\r\n` (CRLF), guaranteeing flawless scanning and integration on major mobile operating systems.
+
 ## [1.1.14] - 2026-07-14
 
 ### Added

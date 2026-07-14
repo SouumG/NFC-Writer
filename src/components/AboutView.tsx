@@ -26,7 +26,7 @@ export default function AboutView() {
             <h3 className="font-bold text-sm text-gray-200">Contactless Engineering Built Client-Side</h3>
             <div className="text-xs text-gray-400 leading-relaxed space-y-3 select-text">
               <p>
-                NFC Writer (v1.1.14) is a robust, full-stack client-side Progressive Web Application designed for programming, scanning, parsing, and diagnosing high-frequency RFID/NFC chips. Built entirely in React and styled with a glassmorphism theme, this applet operates 100% locally on your browser.
+                NFC Writer (v1.1.15) is a robust, full-stack client-side Progressive Web Application designed for programming, scanning, parsing, and diagnosing high-frequency RFID/NFC chips. Built entirely in React and styled with a glassmorphism theme, this applet operates 100% locally on your browser.
               </p>
               <p>
                 By avoiding backend databases, your personal Wi-Fi configurations, phone lines, coordinates, or vCard details are never uploaded or synced to external servers, guaranteeing maximum privacy and cryptographic security.
@@ -46,6 +46,18 @@ export default function AboutView() {
             </h3>
 
             <div className="space-y-4 text-xs font-mono">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-gray-200">v1.1.15</span>
+                  <span className="text-[10px] text-emerald-400 font-bold uppercase">• Native Android Wi-Fi WPS Payload &amp; CRLF Alignment</span>
+                </div>
+                <ul className="list-disc pl-4 text-gray-400 text-[11px] space-y-0.5 leading-relaxed">
+                  <li>Implemented fully spec-compliant binary WPS (Wi-Fi Protected Setup) payload compilation for native tap-to-connect triggers on Android.</li>
+                  <li>Maintained dual-record writing with plain URI string fallback for cross-device scanner app compatibility.</li>
+                  <li>Corrected vCard and iCalendar record streams to use standard CRLF line endings to improve device parsing.</li>
+                </ul>
+              </div>
+
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-gray-200">v1.1.14</span>
