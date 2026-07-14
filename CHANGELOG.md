@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.15] - 2026-07-14
 
 ### Changed
-- **Metadata Optimization**: Removed the inactive `MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API` capability from `metadata.json` to keep the application configuration fully aligned with its zero-backend, client-only PWA architecture.
+- **Metadata Optimization**: Removed inactive properties from `metadata.json` to keep the application configuration fully aligned with its zero-backend, client-only PWA architecture.
 
 ### Fixed
 - **Native Android Wi-Fi Connection Trigger**: Implemented full WPS (Wi-Fi Protected Setup) TLV big-endian binary compilation for the `application/vnd.wfa.wsc` MIME record type. This triggers native, automated connection dialog prompts on Android devices upon tag contact.
@@ -52,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Preset Template Sync**: Enabled loading built-in or custom templates directly from the Templates screen into the Write screen's input fields.
 
 ### Fixed
-- **Iframe Sandbox Compatibility**: Resolved critical `SecurityError` and DOM exception crashes by wrapping browser environment checks and `NDEFReader` operations in secure `try-catch` structures. This ensures the app operates smoothly in sandboxed `iframe` containers (such as the Google AI Studio live preview).
+- **Iframe Sandbox Compatibility**: Resolved critical `SecurityError` and DOM exception crashes by wrapping browser environment checks and `NDEFReader` operations in secure `try-catch` structures. This ensures the app operates smoothly in sandboxed `iframe` containers (such as the live developer preview).
 
 ## [1.1.2] - 2026-07-04
 
