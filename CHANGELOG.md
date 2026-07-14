@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.15] - 2026-07-14
 
+### Changed
+- **Metadata Optimization**: Removed the inactive `MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API` capability from `metadata.json` to keep the application configuration fully aligned with its zero-backend, client-only PWA architecture.
+
 ### Fixed
 - **Native Android Wi-Fi Connection Trigger**: Implemented full WPS (Wi-Fi Protected Setup) TLV big-endian binary compilation for the `application/vnd.wfa.wsc` MIME record type. This triggers native, automated connection dialog prompts on Android devices upon tag contact.
 - **Cross-Device Wi-Fi Backwards Compatibility**: Designed a dual-record sequence compiling the native binary WPS record followed immediately by a standard text-based `WIFI:` URI record, resolving third-party scanning app parsing limits on other platforms (e.g., iOS).

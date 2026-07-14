@@ -2,5 +2,5 @@
   "name": "NFC Writer",
   "description": "A high-performance Progressive Web App (PWA) NFC tool suite to read, write, format, and inspect NFC tags with a real-time hardware compatibility analyzer, templates, and utilities.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }

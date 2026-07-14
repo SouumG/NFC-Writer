@@ -49,9 +49,10 @@ export default function AboutView() {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-gray-200">v1.1.15</span>
-                  <span className="text-[10px] text-emerald-400 font-bold uppercase">• Native Android Wi-Fi WPS Payload &amp; CRLF Alignment</span>
+                  <span className="text-[10px] text-emerald-400 font-bold uppercase">• Metadata Clean-up, Native Android Wi-Fi WPS Payload &amp; CRLF Alignment</span>
                 </div>
                 <ul className="list-disc pl-4 text-gray-400 text-[11px] space-y-0.5 leading-relaxed">
+                  <li>Optimized system metadata properties to streamline client-side execution and removed inactive capabilities.</li>
                   <li>Implemented fully spec-compliant binary WPS (Wi-Fi Protected Setup) payload compilation for native tap-to-connect triggers on Android.</li>
                   <li>Maintained dual-record writing with plain URI string fallback for cross-device scanner app compatibility.</li>
                   <li>Corrected vCard and iCalendar record streams to use standard CRLF line endings to improve device parsing.</li>
