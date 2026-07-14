@@ -275,6 +275,59 @@ export default function App() {
     setSelectedPreset(null);
   };
 
+  // Check if current hosting domain is authorized
+  const [domainAuthorized, setDomainAuthorized] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      const isAuthorized = hostname === 'nfc.aiue.se';
+      setDomainAuthorized(isAuthorized);
+    }
+  }, []);
+
+  if (!domainAuthorized) {
+    return (
+      <div className="min-h-screen bg-[#030712] text-gray-100 flex items-center justify-center p-6 font-sans">
+        <div className="max-w-md w-full bg-gray-950 border border-red-500/10 rounded-2xl p-8 space-y-6 text-center shadow-2xl shadow-red-500/5">
+          <div className="w-14 h-14 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl flex items-center justify-center mx-auto">
+            <ShieldAlert className="w-7 h-7" />
+          </div>
+          
+          <div className="space-y-2">
+            <h1 className="text-xl font-bold tracking-tight text-white uppercase font-mono">
+              Deployment Locked
+            </h1>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              This instance of the NFC Writer suite has been deployed on an unauthorized domain. Unauthorized distribution of this build is prohibited to ensure security and maintain contactless transaction integrity.
+            </p>
+          </div>
+
+          <div className="p-4 bg-gray-900/50 rounded-xl border border-gray-850/50 space-y-2.5">
+            <div className="text-[10px] uppercase tracking-wider font-bold text-gray-500 font-mono">
+              Detected Origin
+            </div>
+            <div className="text-xs font-mono text-red-400 bg-red-950/20 py-1.5 px-3 rounded-lg border border-red-900/20 break-all">
+              {typeof window !== 'undefined' ? window.location.origin : 'unknown'}
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <a
+              href="https://nfc.aiue.se/"
+              className="block w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 transition-all text-center"
+            >
+              Access Official Suite
+            </a>
+            <div className="text-[10px] text-gray-500">
+              Only authentic builds served via nfc.aiue.se are cryptographically trusted to compile contactless records.
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`min-h-screen flex flex-col md:flex-row ${settings.theme === 'light' ? 'bg-gray-50 text-gray-900' : 'bg-[#030712] text-gray-100'}`}>
       
@@ -327,7 +380,7 @@ export default function App() {
               </div>
               <div className="text-left">
                 <div className="font-bold leading-none text-sm">NFC Writer</div>
-                <span className="text-[10px] text-gray-500 font-semibold font-mono tracking-wide mt-0.5 block">SUITE v1.1.11</span>
+                <span className="text-[10px] text-gray-500 font-semibold font-mono tracking-wide mt-0.5 block">SUITE v1.1.13</span>
               </div>
             </button>
           </div>
@@ -506,7 +559,7 @@ export default function App() {
             &copy; 2026 NFC Writer. Hosted at: <a href="https://nfc.aiue.se/" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-blue-400 font-mono">https://nfc.aiue.se/</a>
           </div>
           <div className="flex items-center gap-3">
-            <span>Version v1.1.11 (Production)</span>
+            <span>Version v1.1.13 (Production)</span>
             <span>•</span>
             <button type="button" onClick={() => handleNavigate('legal')} className="hover:text-blue-400 cursor-pointer">Privacy & Terms</button>
           </div>
