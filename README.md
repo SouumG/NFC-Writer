@@ -1,4 +1,4 @@
-# NFC Writer — Contactless NDEF Developer Suite Pro (v1.1.13)
+# NFC Writer — Contactless NDEF Developer Suite Pro (v1.1.14)
 
 URL: [https://nfc.aiue.se/](https://nfc.aiue.se/)
 
@@ -78,3 +78,15 @@ NFC Writer is designed with a strict zero-trust privacy model:
 - **100% Client-Side:** No databases, background APIs, or telemetry log servers are implemented.
 - **No Third-Party Cookies:** Zero tracking scripts, trackers, or marketing pixels are loaded.
 - **Secure Storage:** All scanned tags, saved template directories, and activity logs reside strictly inside the browser's sandboxed `LocalStorage` client-side cache and never leave your device.
+
+---
+
+## License & Attribution
+
+This software is released under a proprietary **Source-Available & Domain-Restricted License**. 
+
+- **Copyright:** Copyright (c) 2026 SouumG. All rights reserved.
+- **Viewing and Local Use:** You are free to view, download, fork, and run the source code locally for personal, educational, or evaluation purposes.
+- **Hosting Restriction:** Public hosting, deployment, or mirroring of this application on any public domain other than `nfc.aiue.se` is strictly prohibited unless prior explicit written permission is granted by the copyright holder.
+- **Attribution:** Any fork, permitted distribution, or derivative work must preserve all copyright notices, author attributions, and direct links back to the original author **SouumG** on GitHub.
+

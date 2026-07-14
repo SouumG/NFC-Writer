@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.14] - 2026-07-14
+
+### Added
+- **Proprietary & Domain-Restricted License**: Created a custom `LICENSE` file under the author's official GitHub username **SouumG**. The license grants viewing and local execution rights, but strictly prohibits unauthorized public hosting or deployment under any domain other than `nfc.aiue.se` without prior written permission, whilst enforcing prominent attribution and credit.
+
+### Changed
+- **Attribution Brand Update**: Replaced all occurrences of the author's real name with their official GitHub username **SouumG** across all app modules, licensing agreements, documentation files, and the primary application workspace.
+
 ## [1.1.13] - 2026-07-14
 
 ### Changed

@@ -1,0 +1,31 @@
+NFC WRITER SOURCE-AVAILABLE LICENSE
+Version 1.0
+
+Copyright (c) 2026 SouumG. All rights reserved.
+
+1. DEFINITIONS
+"Software" refers to the source code, user interface designs, assets, documentation, and compiled binaries contained within this repository.
+"Copyright Holder" refers to SouumG on GitHub.
+"Authorized Domains" refers exclusively to:
+  - nfc.aiue.se
+  - any other domain for which the Copyright Holder has granted explicit, prior written permission.
+
+2. LICENSE GRANT
+Subject to the terms and conditions of this License, the Copyright Holder hereby grants you a non-exclusive, non-transferable, royalty-free, worldwide license to download, view, clone, and run the Software locally for personal, educational, evaluative, or development purposes.
+
+3. RESTRICTIONS AND PROHIBITIONS
+You are strictly prohibited from performing any of the following actions without prior explicit written permission from the Copyright Holder:
+  a. Public Hosting & Deployment: You may not host, publish, deploy, or mirror the Software (or any derivative or modified version thereof) on any public network, web server, or hosting platform (including but not limited to GitHub Pages, Vercel, Netlify, Cloudflare, or AWS) under any domain other than the Authorized Domains.
+  b. Commercial Use: You may not use the Software, or any portion of its code, to generate revenue, provide commercial services, or bundle it into a paid offering.
+  c. Branding & Trademarks: You may not use the name "NFC Writer", its associated logos, or visual designs/themes in any public fork or derivative work. Any authorized modification must remove all primary brand assets and logos unless specified otherwise in writing by the Copyright Holder.
+
+4. ATTRIBUTION AND CREDITS
+In any fork, modification, or permitted distribution of this Software, you MUST:
+  a. Keep all copyright notices, author attributions, and license text intact.
+  b. Include prominent, visible credit to the original author (SouumG) in any user-facing interface, documentation, and README files, with a direct link back to the original GitHub repository.
+
+5. TERMINATION
+This license terminates automatically if you breach any of its terms. Upon termination, you must cease all use and destroy all copies of the Software in your possession.
+
+6. DISCLAIMER OF WARRANTY
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
