@@ -56,12 +56,12 @@ export default function AboutView() {
               <div className="space-y-1.5 bg-blue-500/5 border border-blue-500/20 p-3.5 rounded-lg">
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-xs text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/30">v1.1.17</span>
-                  <span className="text-xs text-gray-200 font-bold uppercase">• Direct Diagnostic Terminal, Blank Tag Differentiation &amp; Collapsible Logs</span>
+                  <span className="text-xs text-gray-200 font-bold uppercase">• Collapsible Changelog &amp; Unified Color Scheme</span>
                 </div>
                 <ul className="list-disc pl-5 text-gray-300 text-[11px] space-y-1 leading-relaxed">
-                  <li>Direct technical error messages when reading or writing fails without hand-holding advice.</li>
-                  <li>Differentiated failed reads from empty tags (`Read Succeeded — Blank / Unformatted Tag`).</li>
-                  <li>Formatted system changelog history with a collapsible toggle for older release logs.</li>
+                  <li>Formatted system changelog history so only the latest version is visible by default.</li>
+                  <li>Integrated an interactive collapsible toggle button to view older release logs.</li>
+                  <li>Harmonized and standardized typographic color scheme across all release history entries.</li>
                   <li>Consolidated version footprint to version 1.1.17 across all application components.</li>
                 </ul>
               </div>

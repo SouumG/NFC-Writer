@@ -30,7 +30,6 @@ interface ReadViewProps {
 export default function ReadView({ report, onAddHistory, onShowToast }: ReadViewProps) {
   const [scanState, setScanState] = useState<'idle' | 'scanning' | 'success' | 'error' | 'paused'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
-  const [transientWarning, setTransientWarning] = useState('');
   const [serialNumber, setSerialNumber] = useState('');
   const [records, setRecords] = useState<any[]>([]);
   const [showRaw, setShowRaw] = useState(false);
@@ -38,7 +37,6 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
   
   const abortControllerRef = useRef<AbortController | null>(null);
   const scanStateRef = useRef(scanState);
-  const consecutiveErrorsRef = useRef(0);
 
   // Sync state ref
   useEffect(() => {
@@ -57,7 +55,7 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
   };
 
   // Real Web NFC Scan
-  const startRealScan = async (retryCount = 0) => {
+  const startRealScan = async () => {
     try {
       let isIframe = false;
       try {
@@ -75,9 +73,6 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
 
       setScanState('scanning');
       setErrorMessage('');
-      setTransientWarning('');
-      consecutiveErrorsRef.current = 0;
-
       setScanLogs([
         'Initializing Web NFC scanning controller...',
         'Powering up device RFID reader (13.56 MHz band)...',
@@ -91,8 +86,6 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
 
       ndef.onreading = (event: any) => {
         try {
-          consecutiveErrorsRef.current = 0;
-          setTransientWarning('');
           const serial = event.serialNumber || 'N/A';
           setSerialNumber(serial);
           
@@ -181,20 +174,15 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
         }
       };
 
-      ndef.onreadingerror = (evt: any) => {
-        consecutiveErrorsRef.current += 1;
-        const errCount = consecutiveErrorsRef.current;
-        
-        setScanLogs(prev => [
-          ...prev,
-          `[Error #${errCount}] Reading Failed: Signal dropped or IO communication interrupted.`
-        ]);
-
-        if (navigator.vibrate) {
-          navigator.vibrate([60, 40, 60]);
-        }
-
-        setTransientWarning(`Reading Failed: Tag signal lost (IO error #${errCount}).`);
+      ndef.onreadingerror = () => {
+        setErrorMessage("Hardware Reading Error: Failed to read NFC tag. Make sure tag is aligned.");
+        setScanState('error');
+        onAddHistory({
+          operation: 'read',
+          status: 'failed',
+          errorMessage: 'Hardware Reading Error',
+          summary: 'Scanned tag read failure',
+        });
       };
 
     } catch (err: any) {
@@ -203,20 +191,8 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
         setScanState(prev => prev === 'success' ? 'success' : 'idle');
         return;
       }
-      
-      // Auto retry transient IO boot errors up to 2 times
-      if ((err.name === 'IOError' || err.name === 'NotReadableError') && retryCount < 2) {
-        setScanLogs(prev => [...prev, `[Auto-Recovery] Retry #${retryCount + 1} booting scanner (${err.name})...`]);
-        await new Promise(r => setTimeout(r, 300));
-        return startRealScan(retryCount + 1);
-      }
-
       console.error(err);
-      let friendly = `Reading Failed: ${err.message || 'Scan initialization error'}`;
-      if (err.name === 'IOError' || err.name === 'NotReadableError') {
-        friendly = "Reading Failed: NFC hardware communication error (IOError / Signal Interrupted).";
-      }
-      setErrorMessage(friendly);
+      setErrorMessage(err.message || "Failed to start NFC scan.");
       setScanState('error');
     }
   };
@@ -355,7 +331,7 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
 
         {/* State: SCANNING */}
         {scanState === 'scanning' && (
-          <div className="w-full max-w-md space-y-4 z-10 flex flex-col items-center">
+          <div className="w-full max-w-md space-y-5 z-10 flex flex-col items-center">
             <div className="text-center space-y-2">
               <div className="relative w-16 h-16 bg-blue-950/40 border border-blue-500/30 rounded-full flex items-center justify-center mx-auto pulse-glowing">
                 <Scan className="w-7 h-7 text-blue-400" />
@@ -371,14 +347,6 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
                 </p>
               </div>
             </div>
-
-            {/* Transient Signal Drop / IO Glitch Alert Banner */}
-            {transientWarning && (
-              <div className="w-full p-2.5 bg-amber-950/30 border border-amber-500/30 rounded-lg text-amber-300 text-[11px] flex items-center gap-2 animate-pulse">
-                <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
-                <span>{transientWarning}</span>
-              </div>
-            )}
 
             {/* Diagnostic Terminal Logs */}
             <div className="w-full bg-black/80 border border-gray-800/80 rounded-xl p-4 font-mono text-[10px] text-gray-400 text-left space-y-1.5 h-36 overflow-y-auto shadow-inner">
@@ -399,8 +367,8 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
               <AlertCircle className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-red-400 uppercase tracking-wide">Reading Failed</h3>
-              <p className="text-xs text-gray-300 font-mono mt-1 leading-relaxed">
+              <h3 className="text-sm font-semibold text-red-400">Scan Connection Interrupted</h3>
+              <p className="text-xs text-gray-400 mt-1 leading-relaxed">
                 {errorMessage}
               </p>
             </div>
@@ -421,9 +389,7 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
               <div className="flex items-center gap-2.5">
                 <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
                 <div>
-                  <h3 className="font-bold text-sm text-gray-200">
-                    {records.length > 0 ? 'Read Succeeded — NDEF Message Extracted' : 'Read Succeeded — Blank / Unformatted Tag'}
-                  </h3>
+                  <h3 className="font-bold text-sm text-gray-200">NDEF Message Extracted</h3>
                   <p className="text-[10px] text-gray-400 mt-0.5">UID / Serial: <span className="font-mono text-gray-300">{serialNumber}</span></p>
                 </div>
               </div>
@@ -447,12 +413,7 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
 
             {/* Render Records */}
             <div className="space-y-4">
-              {records.length === 0 ? (
-                <div className="p-6 bg-gray-900/40 border border-gray-800 rounded-xl text-center space-y-2">
-                  <div className="text-xs font-bold text-gray-200 uppercase tracking-wider">Read Succeeded: Blank / Unformatted Tag</div>
-                  <div className="text-[11px] text-gray-400 font-mono">0 NDEF payload records present in chip memory. Tag is ready for programming.</div>
-                </div>
-              ) : records.map((record, index) => {
+              {records.map((record, index) => {
                 const hexString = toHexString(record.rawData || new Uint8Array(0));
                 const asciiString = toAsciiString(record.rawData || new Uint8Array(0));
                 
