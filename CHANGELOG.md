@@ -8,9 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.17] - 2026-07-22
 
 ### Changed
+- **Direct Developer Diagnostic Terminal**: Refactored error reporting in both reader and writer terminals to explicitly report whether reading or writing failed with concise technical error codes.
+- **Differentiated Blank Tag vs. Read Failure**: Resolved issue where failed reads could be misidentified as blank tags by explicitly checking and labeling empty NDEF record states (`Read Succeeded — Blank / Unformatted Tag`) vs active read failures (`Reading Failed`).
 - **Collapsible Changelog Interface**: Formatted system changelog history to display only the latest version (`v1.1.17`) by default with an interactive toggle dropdown to reveal older versions.
-- **Unified Typographic Color Scheme**: Standardized all release headings, tag badges, and list entries to use a single cohesive color palette instead of mismatched element colors.
-- **Synchronized Release Footprint**: Consolidated version footprint to `1.1.17` across `package.json`, service worker cache declarations, app components, README, and system documentation.
+- **Version Synchronization**: Consolidated release footprint to `1.1.17` across `package.json`, service worker cache declarations, app components, README, and system documentation.
 
 ## [1.1.16] - 2026-07-22
 

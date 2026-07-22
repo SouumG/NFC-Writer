@@ -425,15 +425,15 @@ export default function WriteView({
         return;
       }
       console.error(err);
-      let friendlyError = err.message || 'Tag disconnected. Hold tag firmly near phone.';
+      let friendlyError = `Writing Failed: ${err.message || 'Tag disconnected or writing error'}`;
       if (err.name === 'IOError' || err.name === 'NotReadableError' || err.name === 'NetworkError' || (err.message && (err.message.includes('IO') || err.message.includes('connection') || err.message.includes('alignment')))) {
-        friendlyError = "NFC IO Error: Contactless signal lost mid-transmission. Keep your tag pressed flat and steady against your device's antenna (top/middle back) until writing completes.";
+        friendlyError = "Writing Failed: NFC hardware communication error (IOError / Signal Interrupted).";
       } else if (err.name === 'NotAllowedError') {
-        friendlyError = "NFC permission denied. Note that Web NFC cannot run inside an iframe. Please open this app in a NEW TAB to program physical tags.";
+        friendlyError = "Writing Failed: NFC permission denied. Open app in a new tab if running in an iframe.";
       } else if (err.name === 'SecurityError') {
-        friendlyError = "Security constraint: Web NFC requires a secure origin (HTTPS) and must be loaded in a top-level window. Open the app in a NEW TAB.";
+        friendlyError = "Writing Failed: Security constraint (requires secure top-level HTTPS context).";
       } else if (err.name === 'NotSupportedError') {
-        friendlyError = "NDEF Tag Not Supported: This tag does not support Web NFC NDEF formatting or is hardware password locked.";
+        friendlyError = "Writing Failed: Tag format unsupported or hardware lock key engaged.";
       }
       setWriteLogs(prev => [...prev, `Writing failed: ${err.name || 'Error'} - ${friendlyError}`]);
       setWriteError(friendlyError);
@@ -1518,10 +1518,10 @@ export default function WriteView({
 
             <div className="text-center">
               <h3 className="text-base font-bold text-gray-200">
-                {writeResult === 'success' ? 'Programming Completed!' : writeResult === 'failed' ? 'Operation Interrupted' : 'RFID Transmission Active'}
+                {writeResult === 'success' ? 'Programming Completed!' : writeResult === 'failed' ? 'Writing Failed' : 'RFID Transmission Active'}
               </h3>
               <p className="text-xs text-gray-500 mt-1">
-                {writeResult === 'success' ? 'Your NDEF tag is safe to disconnect.' : writeResult === 'failed' ? 'Contactless communication failed.' : 'Align physical tag with device antenna.'}
+                {writeResult === 'success' ? 'Your NDEF tag is safe to disconnect.' : writeResult === 'failed' ? 'Writing Failed: Contactless transmission error.' : 'Align physical tag with device antenna.'}
               </p>
               {writeResult === 'failed' && writeError && (
                 <div className="mt-2.5 p-2 bg-red-950/40 border border-red-500/20 rounded-lg text-[10px] text-red-400 text-left leading-relaxed">

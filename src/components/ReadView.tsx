@@ -187,20 +187,14 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
         
         setScanLogs(prev => [
           ...prev,
-          `[Warning #${errCount}] Tag moved or transient IO signal glitch detected. Scanner remains active—hold tag flat against antenna...`
+          `[Error #${errCount}] Reading Failed: Signal dropped or IO communication interrupted.`
         ]);
 
         if (navigator.vibrate) {
           navigator.vibrate([60, 40, 60]);
         }
 
-        if (errCount >= 4) {
-          setTransientWarning("Frequent tag signal dropouts detected. Please hold the tag completely flat against the top or middle back of your phone.");
-        } else {
-          setTransientWarning("Tag signal lost / IO glitch — Scanner active, hold tag steady!");
-        }
-        // Notice: We intentionally do NOT call setScanState('error') here!
-        // Web NFC's scan listener remains actively polling so tag touch resumes seamlessly.
+        setTransientWarning(`Reading Failed: Tag signal lost (IO error #${errCount}).`);
       };
 
     } catch (err: any) {
@@ -212,15 +206,15 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
       
       // Auto retry transient IO boot errors up to 2 times
       if ((err.name === 'IOError' || err.name === 'NotReadableError') && retryCount < 2) {
-        setScanLogs(prev => [...prev, `[Auto-Recovery] Transient IO error booting RFID scanner (${err.name}). Retrying in 300ms...`]);
+        setScanLogs(prev => [...prev, `[Auto-Recovery] Retry #${retryCount + 1} booting scanner (${err.name})...`]);
         await new Promise(r => setTimeout(r, 300));
         return startRealScan(retryCount + 1);
       }
 
       console.error(err);
-      let friendly = err.message || "Failed to start NFC scan.";
+      let friendly = `Reading Failed: ${err.message || 'Scan initialization error'}`;
       if (err.name === 'IOError' || err.name === 'NotReadableError') {
-        friendly = "NFC IO Error: Hardware communication interrupted. Please position the tag flat against your phone's antenna and try again.";
+        friendly = "Reading Failed: NFC hardware communication error (IOError / Signal Interrupted).";
       }
       setErrorMessage(friendly);
       setScanState('error');
@@ -405,8 +399,8 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
               <AlertCircle className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-red-400">Scan Connection Interrupted</h3>
-              <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+              <h3 className="text-sm font-bold text-red-400 uppercase tracking-wide">Reading Failed</h3>
+              <p className="text-xs text-gray-300 font-mono mt-1 leading-relaxed">
                 {errorMessage}
               </p>
             </div>
@@ -427,7 +421,9 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
               <div className="flex items-center gap-2.5">
                 <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
                 <div>
-                  <h3 className="font-bold text-sm text-gray-200">NDEF Message Extracted</h3>
+                  <h3 className="font-bold text-sm text-gray-200">
+                    {records.length > 0 ? 'Read Succeeded — NDEF Message Extracted' : 'Read Succeeded — Blank / Unformatted Tag'}
+                  </h3>
                   <p className="text-[10px] text-gray-400 mt-0.5">UID / Serial: <span className="font-mono text-gray-300">{serialNumber}</span></p>
                 </div>
               </div>
@@ -451,7 +447,12 @@ export default function ReadView({ report, onAddHistory, onShowToast }: ReadView
 
             {/* Render Records */}
             <div className="space-y-4">
-              {records.map((record, index) => {
+              {records.length === 0 ? (
+                <div className="p-6 bg-gray-900/40 border border-gray-800 rounded-xl text-center space-y-2">
+                  <div className="text-xs font-bold text-gray-200 uppercase tracking-wider">Read Succeeded: Blank / Unformatted Tag</div>
+                  <div className="text-[11px] text-gray-400 font-mono">0 NDEF payload records present in chip memory. Tag is ready for programming.</div>
+                </div>
+              ) : records.map((record, index) => {
                 const hexString = toHexString(record.rawData || new Uint8Array(0));
                 const asciiString = toAsciiString(record.rawData || new Uint8Array(0));
                 
