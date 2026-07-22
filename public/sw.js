@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nfc-writer-cache-v1.0.0';
+const CACHE_NAME = 'nfc-writer-cache-v1.1.16';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',

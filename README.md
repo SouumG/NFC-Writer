@@ -1,9 +1,9 @@
-# NFC Writer — Contactless NDEF Developer Suite Pro (v1.1.15)
+# NFC Writer — Contactless NDEF Developer Suite Pro (v1.1.16)
 
 URL: [https://nfc.aiue.se/](https://nfc.aiue.se/)
 
 > [!WARNING]  
-> **Forking, Hosting & Licensing Notice:** This repository is protected under a proprietary **Source-Available & Domain-Restricted License**. While you are free to fork, view, and run this code **locally** for personal, educational, or development purposes, **public hosting, deployment, or mirroring of this application on any public domain other than `nfc.aiue.se` is strictly prohibited**. All forks and derivative works are legally required to keep all original copyright notices, license files, and author attributions completely intact.
+> **Forking, Hosting & Licensing Notice:** This repository is protected under a proprietary **Source-Available & Domain-Restricted License**. While you are free to fork, view, and run this code **locally** for personal, educational, or development purposes, **public hosting, deployment, or mirroring of this application on any public domain other than `nfc.aiue.se` or `www.nfc.aiue.se` is strictly prohibited**. All forks and derivative works are legally required to keep all original copyright notices, license files, and author attributions completely intact.
 
 NFC Writer is a production-grade, highly optimized Progressive Web Application (PWA) designed for scanning, programming, formatting, and analyzing Near Field Communication (NFC) RFID transponders operating under the High-Frequency (HF) 13.56 MHz band.
 
@@ -90,6 +90,6 @@ This software is released under a proprietary **Source-Available & Domain-Restri
 
 - **Copyright:** Copyright (c) 2026 SouumG. All rights reserved.
 - **Viewing and Local Use:** You are free to view, download, fork, and run the source code locally for personal, educational, or evaluation purposes.
-- **Hosting Restriction:** Public hosting, deployment, or mirroring of this application on any public domain other than `nfc.aiue.se` is strictly prohibited unless prior explicit written permission is granted by the copyright holder.
+- **Hosting Restriction:** Public hosting, deployment, or mirroring of this application on any public domain other than `nfc.aiue.se` or `www.nfc.aiue.se` is strictly prohibited unless prior explicit written permission is granted by the copyright holder.
 - **Attribution:** Any fork, permitted distribution, or derivative work must preserve all copyright notices, author attributions, and direct links back to the original author **SouumG** on GitHub.
 

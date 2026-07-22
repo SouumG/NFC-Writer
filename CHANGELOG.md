@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.16] - 2026-07-22
+
+### Changed
+- **Authorized Dual Domain & Link Styling**: Expanded the domain restrictions to authorize exactly `nfc.aiue.se` and `www.nfc.aiue.se` with active, interactive clickable hyperlinks and hover decorations.
+- **Complete Sitemap & Route Indexing**: Updated `sitemap.xml` with all client-side hash routes (`#about`, `#legal`, `#documentation`, etc.) and synchronized timestamps to `2026-07-22`.
+- **Pure Serverless Architecture**: Removed unused server-side packages and API dependencies to ensure a 100% client-side serverless application architecture.
+- **Synchronized Release Footprint**: Consolidated version footprint to `1.1.16` across `package.json`, service worker cache declarations, app components, README, and system documentation.
+
 ## [1.1.15] - 2026-07-14
 
 ### Changed
