@@ -426,10 +426,14 @@ export default function WriteView({
       }
       console.error(err);
       let friendlyError = err.message || 'Tag disconnected. Hold tag firmly near phone.';
-      if (err.name === 'NotAllowedError') {
+      if (err.name === 'IOError' || err.name === 'NotReadableError' || err.name === 'NetworkError' || (err.message && (err.message.includes('IO') || err.message.includes('connection') || err.message.includes('alignment')))) {
+        friendlyError = "NFC IO Error: Contactless signal lost mid-transmission. Keep your tag pressed flat and steady against your device's antenna (top/middle back) until writing completes.";
+      } else if (err.name === 'NotAllowedError') {
         friendlyError = "NFC permission denied. Note that Web NFC cannot run inside an iframe. Please open this app in a NEW TAB to program physical tags.";
       } else if (err.name === 'SecurityError') {
         friendlyError = "Security constraint: Web NFC requires a secure origin (HTTPS) and must be loaded in a top-level window. Open the app in a NEW TAB.";
+      } else if (err.name === 'NotSupportedError') {
+        friendlyError = "NDEF Tag Not Supported: This tag does not support Web NFC NDEF formatting or is hardware password locked.";
       }
       setWriteLogs(prev => [...prev, `Writing failed: ${err.name || 'Error'} - ${friendlyError}`]);
       setWriteError(friendlyError);

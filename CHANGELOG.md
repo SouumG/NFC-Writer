@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.17] - 2026-07-22
+
+### Changed
+- **Collapsible Changelog Interface**: Formatted system changelog history to display only the latest version (`v1.1.17`) by default with an interactive toggle dropdown to reveal older versions.
+- **Unified Typographic Color Scheme**: Standardized all release headings, tag badges, and list entries to use a single cohesive color palette instead of mismatched element colors.
+- **Synchronized Release Footprint**: Consolidated version footprint to `1.1.17` across `package.json`, service worker cache declarations, app components, README, and system documentation.
+
 ## [1.1.16] - 2026-07-22
 
 ### Changed
