@@ -56,9 +56,10 @@ export default function AboutView() {
               <div className="space-y-1.5 bg-blue-500/5 border border-blue-500/20 p-3.5 rounded-lg">
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-xs text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/30">v1.1.17</span>
-                  <span className="text-xs text-gray-200 font-bold uppercase">• Collapsible Changelog &amp; Unified Color Scheme</span>
+                  <span className="text-xs text-gray-200 font-bold uppercase">• Google Site Verification &amp; Collapsible Changelog</span>
                 </div>
                 <ul className="list-disc pl-5 text-gray-300 text-[11px] space-y-1 leading-relaxed">
+                  <li>Added Google Search Console site verification meta tag to document head section.</li>
                   <li>Formatted system changelog history so only the latest version is visible by default.</li>
                   <li>Integrated an interactive collapsible toggle button to view older release logs.</li>
                   <li>Harmonized and standardized typographic color scheme across all release history entries.</li>

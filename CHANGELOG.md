@@ -5,7 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.17] - 2026-07-22
+## [1.1.17] - 2026-07-29
+
+### Added
+- **Google Site Verification**: Integrated Google Search Console site verification meta tag into the document head section.
 
 ### Changed
 - **Collapsible Changelog Interface**: Formatted system changelog history to display only the latest version (`v1.1.17`) by default with an interactive toggle dropdown to reveal older versions.
