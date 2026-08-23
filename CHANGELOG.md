@@ -5,101 +5,95 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.17] - 2026-07-29
+## [1.1.18] - 2026-08-22
 
 ### Added
-- **Google Site Verification**: Integrated Google Search Console site verification meta tag into the document head section.
+- **Core Reading Engine**: Native W3C Web NFC scanner to poll, extract, and format high-frequency RFID/NFC sectors.
+- **Dynamic Parsers**: Customized decoding visualizers for plain text, links, business vCards, Wi-Fi networks, maps coordinates, and raw hex representations.
+- **Core Writing Engine**: Modular interfaces to configure, packetize, and program 12 separate NDEF record types onto tags with automated write-verification checksum checks.
+- **NDEF Templates**: 20 precompiled built-in write profiles and custom profile exporters/importers using JSON configurations.
+- **Hardware Diagnostics & Compatibility Matrix**: Real-time diagnostic checklist and device environment analyzer (screens, browsers, secure origin checks).
+- **History Log Streams**: Sandboxed LocalStorage caches tracking scanned/written transactions with CSV/JSON exporters.
+- **Web Utilities**: Dynamic client-side QR Code compiler canvas, Base64 codecs, and JSON validator beautifiers.
+- **Progressive Web App (PWA)**: Custom `manifest.json`, registered cache-first `/sw.js` Service Worker, responsive vector shortcuts, and offline-first PWA caching.
+- **Proprietary & Domain-Restricted License**: Source-available and domain-restricted legal framework under author SouumG.
+- **WPA3 & Binary WPS Wi-Fi Payloads**: WPS TLV big-endian binary compilation for native tap-to-connect prompts on Android devices and WPA3 Personal (SAE) security support.
 
 ### Changed
-- **Collapsible Changelog Interface**: Formatted system changelog history to display only the latest version (`v1.1.17`) by default with an interactive toggle dropdown to reveal older versions.
-- **Unified Typographic Color Scheme**: Standardized all release headings, tag badges, and list entries to use a single cohesive color palette instead of mismatched element colors.
-- **Synchronized Release Footprint**: Consolidated version footprint to `1.1.17` across `package.json`, service worker cache declarations, app components, README, and system documentation.
+- **Pure Client-Side Architecture**: Consolidated zero server data, zero backend database dependencies, zero API keys, and 100% browser-local NFC execution with Google site-verification metadata integration.
+- **Original Theme & Visual Aesthetics**: Preserved dark slate glassmorphism theme with adaptive accent engine and responsive light mode support.
+- **Authorized Dual Domain Security**: Enforced strict domain restriction authorizing exclusively `nfc.aiue.se` and `www.nfc.aiue.se`.
+- **Synchronized Release Footprint**: Consolidated version footprint to `1.1.18` across `package.json`, service worker cache declarations, app components, README, and system documentation.
+
+## [1.1.17] - 2026-07-29
+
+### Changed
+- **Collapsible Changelog Interface**: Formatted system changelog history to display only the latest version by default with an interactive toggle dropdown to reveal older versions.
+- **Unified Typographic Color Scheme**: Standardized all release headings, tag badges, and list entries to use a single cohesive color palette.
+- **Synchronized Release Footprint**: Consolidated version footprint across all components, service worker caches, and documentation.
 
 ## [1.1.16] - 2026-07-22
 
 ### Changed
-- **Authorized Dual Domain & Link Styling**: Expanded the domain restrictions to authorize exactly `nfc.aiue.se` and `www.nfc.aiue.se` with active, interactive clickable hyperlinks and hover decorations.
-- **Complete Sitemap & Route Indexing**: Updated `sitemap.xml` with all client-side hash routes (`#about`, `#legal`, `#documentation`, etc.) and synchronized timestamps to `2026-07-22`.
+- **Authorized Dual Domain & Link Styling**: Expanded the domain restrictions to authorize strictly `nfc.aiue.se` and `www.nfc.aiue.se` with active, interactive clickable hyperlinks.
+- **Complete Sitemap & Route Indexing**: Updated `sitemap.xml` with all client-side hash routes (`#about`, `#legal`, `#documentation`) and synchronized timestamps.
 - **Pure Serverless Architecture**: Removed unused server-side packages and API dependencies to ensure a 100% client-side serverless application architecture.
-- **Synchronized Release Footprint**: Consolidated version footprint to `1.1.16` across `package.json`, service worker cache declarations, app components, README, and system documentation.
 
 ## [1.1.15] - 2026-07-14
 
 ### Changed
-- **Metadata Optimization**: Removed inactive properties from `metadata.json` to keep the application configuration fully aligned with its zero-backend, client-only PWA architecture.
+- **Metadata Optimization**: Removed inactive properties from `metadata.json` to keep application configuration aligned with zero-backend architecture.
 
 ### Fixed
-- **Native Android Wi-Fi Connection Trigger**: Implemented full WPS (Wi-Fi Protected Setup) TLV big-endian binary compilation for the `application/vnd.wfa.wsc` MIME record type. This triggers native, automated connection dialog prompts on Android devices upon tag contact.
-- **Cross-Device Wi-Fi Backwards Compatibility**: Designed a dual-record sequence compiling the native binary WPS record followed immediately by a standard text-based `WIFI:` URI record, resolving third-party scanning app parsing limits on other platforms (e.g., iOS).
-- **CRLF Alignment for vCard & iCalendar**: Corrected the line break formatting for both vCard contacts (`text/vcard`) and iCalendar schedules (`text/calendar`) from Unix `\n` to standard network `\r\n` (CRLF), guaranteeing flawless scanning and integration on major mobile operating systems.
+- **Native Android Wi-Fi Connection Trigger**: Implemented full WPS (Wi-Fi Protected Setup) TLV big-endian binary compilation for native Android tap-to-connect prompts.
+- **Cross-Device Wi-Fi Compatibility**: Designed a dual-record sequence compiling native binary WPS record followed by standard text `WIFI:` URI record.
+- **CRLF Alignment for vCard & iCalendar**: Corrected line break formatting for vCard contacts and iCalendar schedules to standard network `\r\n` (CRLF).
 
 ## [1.1.14] - 2026-07-14
 
 ### Added
-- **Proprietary & Domain-Restricted License**: Created a custom `LICENSE` file under the author's official GitHub username **SouumG**. The license grants viewing and local execution rights, but strictly prohibits unauthorized public hosting or deployment under any domain other than `nfc.aiue.se` without prior written permission, whilst enforcing prominent attribution and credit.
+- **Proprietary & Domain-Restricted License**: Created custom `LICENSE` file under author's official GitHub username **SouumG**.
 
 ### Changed
-- **Attribution Brand Update**: Replaced all occurrences of the author's real name with their official GitHub username **SouumG** across all app modules, licensing agreements, documentation files, and the primary application workspace.
+- **Attribution Brand Update**: Replaced all occurrences of author's real name with official GitHub username **SouumG** across all app modules.
 
 ## [1.1.13] - 2026-07-14
 
 ### Changed
-- **Absolute Domain Lock Enforcement**: Completely removed development, sandbox, and local testing domain bypass allowances. The application is now exclusively locked to run under `nfc.aiue.se` with zero exceptions.
+- **Absolute Domain Lock Enforcement**: Completely locked application execution exclusively to official domain hosts.
 
 ## [1.1.12] - 2026-07-14
 
 ### Added
-- **Client-Side Domain Lock**: Implemented client-side domain lock enforcement preventing the application from running on unauthorized public domains. Added built-in exceptions for localhost and dev/preview sandbox frame environments to preserve rapid local iteration and testing.
+- **Client-Side Domain Lock**: Implemented client-side domain lock enforcement preventing unauthorized domain hosting.
 
 ## [1.1.11] - 2026-07-07
 
 ### Fixed
-- **Web NFC Scanner/Writer Cleanup**: Resolved a critical race condition where changing internal React states (e.g. from idle to scanning or compiling) immediately triggered the `useEffect` cleanup hook, prematurely aborting the active `AbortController` and causing instant scan/write cancellations and crashes.
-- **Reference Resolution**: Instantiated the `NDEFReader` object directly from `window.NDEFReader` to prevent global constructor references from raising reference errors in sandboxed browser frames.
+- **Web NFC Scanner/Writer Cleanup**: Resolved critical race condition where fast state changes prematurely aborted the active `AbortController`.
+- **Reference Resolution**: Instantiated `NDEFReader` object directly from `window.NDEFReader` to prevent sandboxed iframe reference errors.
 
 ## [1.1.10] - 2026-07-07
 
 ### Added
-- **Interactive Dashboard Fixes**: Wired up all interactive and placeholder buttons across the tools, settings, and dashboard terminals with appropriate native-like event triggers, dialogs, and user feedback.
-- **WPA3 Personal (SAE) Support**: Added native support for WPA3 Personal (SAE) and WPA2/WPA3 Mixed security profiles to maximize device compatibility.
-- **Web NFC Scanning Improvements**: Optimized Web NFC scanning states, native reader initialization diagnostics, and updated Wi-Fi connection NDEF string generation and parser components for backward compatibility.
+- **Interactive Dashboard Fixes**: Wired up all interactive buttons across tools, settings, and dashboard terminals.
+- **WPA3 Personal (SAE) Support**: Added native support for WPA3 Personal (SAE) and WPA2/WPA3 Mixed security profiles.
 
 ## [1.1.3] - 2026-07-05
 
 ### Added
 - **Preset Template Sync**: Enabled loading built-in or custom templates directly from the Templates screen into the Write screen's input fields.
 
-### Fixed
-- **Iframe Sandbox Compatibility**: Resolved critical `SecurityError` and DOM exception crashes by wrapping browser environment checks and `NDEFReader` operations in secure `try-catch` structures. This ensures the app operates smoothly in sandboxed `iframe` containers (such as the live developer preview).
-
 ## [1.1.2] - 2026-07-04
 
 ### Changed
-- **Memory Format Options**: Added a custom memory capacity input field to the NDEF formatting options, allowing users to write to non-standard capacities instead of strictly 144B, 504B, or 888B tags.
-- **Sidebar Blur**: Removed the background blur on the mobile sidebar overlay to improve legibility and responsiveness during navigation.
-
-## [1.2.1] - 2026-07-04
-
-### Added
-- **Web NFC Specs & Simulator Documentation**: Added an active software-level explanation detailing exactly why the simulator exists and how it enables testing on desktop platforms (macOS/Windows) and Safari on iOS.
-- **Hardware Limitations Matrix**: Outlined an 11-point system matrix detailing Web NFC capabilities and standard OS sandboxing limits (what physical tags can do vs. what browsers are security-barred from executing, e.g. Wi-Fi adapter or screen brightness toggles).
-
-### Changed
-- **Erase Tag Payload definition**: Enhanced erase operations to safely overwrite tags with clean, standardized empty text record blocks.
-- **SW Update Lifecycles**: Integrated automated byte-for-byte check triggers inside the main registration flow to activate code changes instantly.
-
-### Fixed
-- **Simulator memory leak prevention**: Added standard `useRef` array trackers to clear simulated writing timeouts when component pages are unmounted.
+- **Memory Format Options**: Added custom memory capacity input field to NDEF formatting options.
 
 ## [1.0.0] - 2026-07-04
 
 ### Added
 - **Core Reading Engine**: Native scanner to poll, extract, and format high-frequency RFID/NFC sectors.
-- **Dynamic Parsers**: Customized decoding visuals for plain text, links, business vCards, Wi-Fi networks, maps coordinates, and raw hex representations.
-- **Core Writing Engine**: Modular interfaces to configure, packetize, and program 12 separate NDEF record types onto tags with automated write-verification checksum checks.
-- **NDEF Templates**: 20 precompiled built-in write profiles and custom profile exporters/importers using JSON configurations.
-- **Hardware Diagnostics**: Real-time diagnostic checklist and device environment analyzer (screens, browsers, secure origin checks).
-- **History log streams**: Sandboxed LocalStorage caches tracking scanned/written transactions with CSV/JSON exporters.
-- **Web Utilities**: Dynamic client-side QR Code compiler canvas, Base64 codecs, and JSON validator beautifiers.
-- **Progressive Web App**: Custom `manifest.json`, Registered Cache-First `/sw.js` Service Worker, responsive vector shortcuts, and splash configurations.
-- **Legal & Help Directories**: Standard FAQ accordion drawers, chip register specifications (NTAG213 vs 215 vs 216), Terms of Service, and Privacy Policy files.
+- **Dynamic Parsers**: Customized decoding visualizers for plain text, links, business vCards, Wi-Fi networks, maps coordinates, and raw hex representations.
+- **Core Writing Engine**: Modular interfaces to configure, packetize, and program 12 separate NDEF record types.
+- **NDEF Templates**: 20 precompiled built-in write profiles and custom profile exporters/importers.
+- **Progressive Web App**: Custom `manifest.json`, registered cache-first Service Worker, and offline PWA support.

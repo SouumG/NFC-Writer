@@ -18,16 +18,17 @@ import {
   Plus,
   Play
 } from 'lucide-react';
-import { NFCHistoryEntry, NFCCompatibilityReport } from '../types';
+import { NFCHistoryEntry, NFCCompatibilityReport, NFCSettings } from '../types';
 import { parseVCardString, parseWifiString } from '../data';
 
 interface ReadViewProps {
   report: NFCCompatibilityReport;
   onAddHistory: (entry: Omit<NFCHistoryEntry, 'id' | 'timestamp'>) => void;
   onShowToast: (message: string) => void;
+  settings?: NFCSettings;
 }
 
-export default function ReadView({ report, onAddHistory, onShowToast }: ReadViewProps) {
+export default function ReadView({ report, onAddHistory, onShowToast, settings }: ReadViewProps) {
   const [scanState, setScanState] = useState<'idle' | 'scanning' | 'success' | 'error' | 'paused'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [serialNumber, setSerialNumber] = useState('');

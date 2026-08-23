@@ -22,7 +22,7 @@ import {
   Plus,
   Lock
 } from 'lucide-react';
-import { NFCRecordType, NFCTemplate, NFCHistoryEntry, NFCCompatibilityReport } from '../types';
+import { NFCRecordType, NFCTemplate, NFCHistoryEntry, NFCCompatibilityReport, NFCSettings } from '../types';
 import { generateId, generateVCard, generateWifiString, generateCalendarString, generateWifiBinary } from '../data';
 
 interface WriteViewProps {
@@ -33,6 +33,7 @@ interface WriteViewProps {
   selectedPreset?: NFCTemplate | null;
   onClearPreset?: () => void;
   onShowToast: (message: string) => void;
+  settings?: NFCSettings;
 }
 
 export default function WriteView({ 
@@ -42,7 +43,8 @@ export default function WriteView({
   onSaveTemplate,
   selectedPreset,
   onClearPreset,
-  onShowToast
+  onShowToast,
+  settings
 }: WriteViewProps) {
   // Configured inputs state
   const [selectedType, setSelectedType] = useState<NFCRecordType>('text');
@@ -112,7 +114,7 @@ export default function WriteView({
   const [writeLogs, setWriteLogs] = useState<string[]>([]);
   const [writeError, setWriteError] = useState('');
   
-  const [verifyOption, setVerifyOption] = useState(true);
+  const [verifyOption, setVerifyOption] = useState(settings?.autoVerifyWrites ?? true);
 
   const [templateName, setTemplateName] = useState('');
   const [templateDesc, setTemplateDesc] = useState('');

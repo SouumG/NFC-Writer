@@ -142,10 +142,9 @@ export default function App() {
     };
   }, []);
 
-  // Sync settings theme to document
+  // Sync settings theme to document and local persistence
   useEffect(() => {
     const root = document.documentElement;
-    // Apply Light/Dark modes
     if (settings.theme === 'light') {
       root.classList.add('light-mode-active');
       root.style.setProperty('--color-primary-500', settings.accentColor);
@@ -280,11 +279,12 @@ export default function App() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname;
-      const isAuthorized = 
+      const hostname = window.location.hostname.toLowerCase();
+      const isOfficialDomain = 
         hostname === 'nfc.aiue.se' || 
         hostname === 'www.nfc.aiue.se';
-      setDomainAuthorized(isAuthorized);
+
+      setDomainAuthorized(isOfficialDomain);
     }
   }, []);
 
@@ -382,7 +382,7 @@ export default function App() {
               </div>
               <div className="text-left">
                 <div className="font-bold leading-none text-sm">NFC Writer</div>
-                <span className="text-[10px] text-gray-500 font-semibold font-mono tracking-wide mt-0.5 block">SUITE v1.1.17</span>
+                <span className="text-[10px] text-gray-500 font-semibold font-mono tracking-wide mt-0.5 block">SUITE v1.1.18</span>
               </div>
             </button>
           </div>
@@ -480,6 +480,7 @@ export default function App() {
             report={compatibility}
             onAddHistory={handleAddHistory}
             onShowToast={showToast}
+            settings={settings}
           />
         )}
 
@@ -492,6 +493,7 @@ export default function App() {
             selectedPreset={selectedPreset}
             onClearPreset={() => setSelectedPreset(null)}
             onShowToast={showToast}
+            settings={settings}
           />
         )}
 
@@ -561,7 +563,7 @@ export default function App() {
             &copy; 2026 NFC Writer. Hosted at: <a href="https://nfc.aiue.se/" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-blue-400 font-mono">https://nfc.aiue.se/</a>
           </div>
           <div className="flex items-center gap-3">
-            <span>Version v1.1.17 (Production)</span>
+            <span>Version v1.1.18 (Production)</span>
             <span>•</span>
             <button type="button" onClick={() => handleNavigate('legal')} className="hover:text-blue-400 cursor-pointer">Privacy & Terms</button>
           </div>
