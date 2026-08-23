@@ -163,6 +163,13 @@ export default function App() {
         document.body.style.color = '#f3f4f6';
       }
 
+      // Sync animation preference
+      if (settings.animationEnabled === false) {
+        root.classList.add('no-animations');
+      } else {
+        root.classList.remove('no-animations');
+      }
+
       // Convert hex color to RGB for CSS variables
       let hex = settings.accentColor.replace('#', '');
       if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
@@ -173,9 +180,6 @@ export default function App() {
       root.style.setProperty('--accent-color', settings.accentColor);
       root.style.setProperty('--accent-rgb', `${r}, ${g}, ${b}`);
       root.style.setProperty('--color-primary-500', settings.accentColor);
-      root.style.setProperty('--color-blue-500', settings.accentColor);
-      root.style.setProperty('--color-blue-600', `rgb(${Math.max(0, r - 20)}, ${Math.max(0, g - 20)}, ${Math.max(0, b - 20)})`);
-      root.style.setProperty('--color-blue-400', `rgb(${Math.min(255, r + 30)}, ${Math.min(255, g + 30)}, ${Math.min(255, b + 30)})`);
     };
 
     applyThemeAndColor();

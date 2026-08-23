@@ -98,6 +98,13 @@ body {
 }
 
 /* Comprehensive Light Mode Active Overrides */
+.no-animations *,
+.no-animations *::before,
+.no-animations *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
 .light-mode-active body {
   background-color: #f8fafc !important;
   color: #0f172a !important;

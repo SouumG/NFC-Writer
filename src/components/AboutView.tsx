@@ -28,7 +28,7 @@ export default function AboutView() {
             <h3 className="font-bold text-sm text-gray-200">Contactless Engineering Built Client-Side</h3>
             <div className="text-xs text-gray-400 leading-relaxed space-y-3 select-text">
               <p>
-                NFC Writer (v1.1.18) is a robust, full-stack client-side Progressive Web Application designed for programming, scanning, parsing, and diagnosing high-frequency RFID/NFC chips. Built entirely in React and styled with a glassmorphism theme, this applet operates 100% locally on your browser.
+                NFC Writer (v1.1.19) is a robust, full-stack client-side Progressive Web Application designed for programming, scanning, parsing, and diagnosing high-frequency RFID/NFC chips. Built entirely in React and styled with a glassmorphism theme, this applet operates 100% locally on your browser.
               </p>
               <p>
                 By avoiding backend databases, your personal Wi-Fi configurations, phone lines, coordinates, or vCard details are never uploaded or synced to external servers, guaranteeing maximum privacy and cryptographic security.
@@ -60,7 +60,8 @@ export default function AboutView() {
                 </div>
                 <ul className="list-disc pl-5 text-gray-300 text-[11px] space-y-1.5 leading-relaxed pt-1">
                   <li><strong>Custom Hex Color Picker:</strong> Added a custom color picker input and hex text input alongside color presets in SettingsView to customize accent colors across the app.</li>
-                  <li><strong>Active CSS Variable Engine:</strong> Implemented dynamic RGB hex conversion and CSS custom properties for accent colors, scrollbars, glowing scanner lines, and active highlight states.</li>
+                  <li><strong>Preset Color Swatch Isolation:</strong> Fixed preset swatch styling so option 2 (Dynamic Blue) and all preset colors remain unchanged when picking custom accent colors.</li>
+                  <li><strong>Interface Motion &amp; Verification Sync:</strong> Added animation disable toggling (`.no-animations`) and connected Write verification settings to auto-sync with user preferences.</li>
                   <li><strong>Enhanced Light Theme &amp; OS Media Sync:</strong> Upgraded Light Theme CSS overrides with high-contrast card styling, light inputs, and automatic OS system theme synchronization.</li>
                   <li><strong>Synchronized Release Footprint:</strong> Updated version badges to v1.1.19 across package.json, PWA service worker cache, README.md, CHANGELOG.md, and all UI views.</li>
                 </ul>

@@ -116,6 +116,13 @@ export default function WriteView({
   
   const [verifyOption, setVerifyOption] = useState(settings?.autoVerifyWrites ?? true);
 
+  // Sync verifyOption with settings
+  useEffect(() => {
+    if (settings?.autoVerifyWrites !== undefined) {
+      setVerifyOption(settings.autoVerifyWrites);
+    }
+  }, [settings?.autoVerifyWrites]);
+
   const [templateName, setTemplateName] = useState('');
   const [templateDesc, setTemplateDesc] = useState('');
   const [showSaveModal, setShowSaveModal] = useState(false);

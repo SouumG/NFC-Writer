@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Custom Color Picker**: Added a color input selector (`<input type="color">`) and custom hex text field in SettingsView allowing custom accent colors across the suite.
-- **Dynamic CSS Variable Engine**: Implemented hex-to-RGB conversion setting CSS custom variables (`--accent-color`, `--accent-rgb`, `--color-blue-500`, etc.) dynamically on `:root` to update scrollbars, scanner glow effects, buttons, and active indicators.
+- **Dynamic CSS Variable Engine**: Implemented hex-to-RGB conversion setting CSS custom variables (`--accent-color`, `--accent-rgb`, `--color-primary-500`, etc.) dynamically on `:root` to update scrollbars, scanner glow effects, buttons, and active indicators.
+- **Interface Motion Control**: Added support for `.no-animations` utility class hooked to `settings.animationEnabled` to toggle UI transitions and micro-animations.
+- **Auto-Verify Writes Synchronization**: Connected `settings.autoVerifyWrites` directly to WriteView state to automatically sync verification preferences.
+
+### Fixed
+- **Preset Color Swatch Isolation**: Fixed a bug where customizing accent colors mutated preset color swatches (e.g. Option 2 Dynamic Blue) by isolating preset swatch styling from global CSS variable overrides.
 
 ### Changed
 - **Enhanced Light Theme**: Upgraded Light Theme CSS overrides in `src/index.css` with clean light background panels, light input fields, and dark slate typography.

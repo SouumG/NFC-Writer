@@ -112,7 +112,10 @@ export default function SettingsView({
                       className={`w-8 h-8 rounded-full cursor-pointer flex items-center justify-center border-2 transition-all ${settings.accentColor.toLowerCase() === color.value.toLowerCase() ? 'border-white scale-110 shadow-lg' : 'border-transparent hover:scale-105'}`}
                       title={color.name}
                     >
-                      <span className={`w-6 h-6 rounded-full block ${color.class}`}></span>
+                      <span 
+                        className="w-6 h-6 rounded-full block" 
+                        style={{ backgroundColor: color.value }}
+                      ></span>
                     </button>
                   ))}
 
