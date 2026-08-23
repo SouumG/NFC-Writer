@@ -180,6 +180,12 @@ export default function App() {
       root.style.setProperty('--accent-color', settings.accentColor);
       root.style.setProperty('--accent-rgb', `${r}, ${g}, ${b}`);
       root.style.setProperty('--color-primary-500', settings.accentColor);
+      root.style.setProperty('--color-blue-500', settings.accentColor);
+      root.style.setProperty('--color-blue-600', `rgb(${Math.max(0, r - 25)}, ${Math.max(0, g - 25)}, ${Math.max(0, b - 25)})`);
+      root.style.setProperty('--color-blue-400', `rgb(${Math.min(255, r + 35)}, ${Math.min(255, g + 35)}, ${Math.min(255, b + 35)})`);
+      root.style.setProperty('--color-sky-500', settings.accentColor);
+      root.style.setProperty('--color-sky-600', `rgb(${Math.max(0, r - 25)}, ${Math.max(0, g - 25)}, ${Math.max(0, b - 25)})`);
+      root.style.setProperty('--color-sky-400', `rgb(${Math.min(255, r + 35)}, ${Math.min(255, g + 35)}, ${Math.min(255, b + 35)})`);
     };
 
     applyThemeAndColor();
