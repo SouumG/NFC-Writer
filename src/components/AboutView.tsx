@@ -48,26 +48,21 @@ export default function AboutView() {
                 <History className="w-4 h-4 text-blue-400" />
                 <span>System Changelog History</span>
               </h3>
-              <span className="text-[10px] font-mono text-gray-500">Release: v1.1.18</span>
+              <span className="text-[10px] font-mono text-gray-500">Release: v1.1.19</span>
             </div>
 
             <div className="space-y-4 text-xs font-mono">
               {/* Latest Version (Always Visible) */}
               <div className="space-y-2 bg-blue-500/5 border border-blue-500/20 p-4 rounded-lg">
                 <div className="flex items-center gap-2 pb-1 border-b border-blue-500/10">
-                  <span className="font-bold text-xs text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded border border-blue-500/30">v1.1.18</span>
-                  <span className="text-xs text-gray-200 font-bold uppercase">• Complete Client-Side Suite &amp; System Consolidation</span>
+                  <span className="font-bold text-xs text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded border border-blue-500/30">v1.1.19</span>
+                  <span className="text-xs text-gray-200 font-bold uppercase">• Dynamic Custom Color Picker &amp; Theme Engine Optimization</span>
                 </div>
                 <ul className="list-disc pl-5 text-gray-300 text-[11px] space-y-1.5 leading-relaxed pt-1">
-                  <li><strong>Pure Client-Side Architecture:</strong> Zero server data, zero external database dependencies, zero API keys, and 100% browser-local execution with Google site-verification metadata integration.</li>
-                  <li><strong>Core NFC Engine:</strong> Native W3C Web NFC scanner and encoder for 12 NDEF record types (plain text, web URLs, vCard contacts, Wi-Fi setups, SMS drafts, maps coordinates, and raw binary).</li>
-                  <li><strong>Advanced Wi-Fi &amp; WPS Payloads:</strong> Spec-compliant binary WPS TLV compilation for automated Android tap-to-connect prompts and WPA3 Personal (SAE) security profile support.</li>
-                  <li><strong>20 Built-in NDEF Templates:</strong> Precompiled template directory with JSON export/import and direct Write terminal loading.</li>
-                  <li><strong>Hardware Diagnostics:</strong> Real-time hardware capability analyzer, browser sandboxing compatibility checklist, and diagnostic status tools.</li>
-                  <li><strong>Local Storage &amp; Utilities:</strong> Sandboxed client-side activity history logs, CSV/JSON log exports, dynamic QR Code generator, Base64 codecs, and JSON formatters.</li>
-                  <li><strong>Theme &amp; Visual Design:</strong> High-contrast dark slate glassmorphism theme, dynamic accent color selector, and responsive light mode support.</li>
-                  <li><strong>Domain Authorization &amp; Licensing:</strong> Exclusive execution authorization restricted strictly to <code>nfc.aiue.se</code> and <code>www.nfc.aiue.se</code> under SouumG proprietary license.</li>
-                  <li><strong>Offline PWA Engine:</strong> Cache-first Service Worker with offline fallback pipeline and manifest shortcuts.</li>
+                  <li><strong>Custom Hex Color Picker:</strong> Added a custom color picker input and hex text input alongside color presets in SettingsView to customize accent colors across the app.</li>
+                  <li><strong>Active CSS Variable Engine:</strong> Implemented dynamic RGB hex conversion and CSS custom properties for accent colors, scrollbars, glowing scanner lines, and active highlight states.</li>
+                  <li><strong>Enhanced Light Theme &amp; OS Media Sync:</strong> Upgraded Light Theme CSS overrides with high-contrast card styling, light inputs, and automatic OS system theme synchronization.</li>
+                  <li><strong>Synchronized Release Footprint:</strong> Updated version badges to v1.1.19 across package.json, PWA service worker cache, README.md, CHANGELOG.md, and all UI views.</li>
                 </ul>
               </div>
 
@@ -79,7 +74,7 @@ export default function AboutView() {
               >
                 <div className="flex items-center gap-2">
                   <History className="w-3.5 h-3.5 text-blue-400" />
-                  <span className="font-semibold">{showOlder ? "Hide older versions" : "Show older version history (17 releases)"}</span>
+                  <span className="font-semibold">{showOlder ? "Hide older versions" : "Show older version history (18 releases)"}</span>
                 </div>
                 {showOlder ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
               </button>
@@ -87,6 +82,18 @@ export default function AboutView() {
               {/* Collapsible Older Versions List */}
               {showOlder && (
                 <div className="space-y-4 pt-2 border-t border-gray-800/60 transition-all">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-gray-300">v1.1.18</span>
+                      <span className="text-[10px] text-gray-400 font-bold uppercase">• Complete Client-Side Suite &amp; System Consolidation</span>
+                    </div>
+                    <ul className="list-disc pl-4 text-gray-400 text-[11px] space-y-0.5 leading-relaxed">
+                      <li>Zero server data, zero external database dependencies, zero API keys, and 100% browser-local execution.</li>
+                      <li>Native W3C Web NFC scanner and encoder supporting 12 NDEF record types.</li>
+                      <li>Spec-compliant binary WPS TLV compilation for native Android tap-to-connect prompts and WPA3 Personal (SAE) security support.</li>
+                      <li>Strict domain restriction authorizing exclusively nfc.aiue.se and www.nfc.aiue.se under SouumG proprietary license.</li>
+                    </ul>
+                  </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-gray-300">v1.1.17</span>

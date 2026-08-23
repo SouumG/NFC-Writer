@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.19] - 2026-08-22
+
+### Added
+- **Custom Color Picker**: Added a color input selector (`<input type="color">`) and custom hex text field in SettingsView allowing custom accent colors across the suite.
+- **Dynamic CSS Variable Engine**: Implemented hex-to-RGB conversion setting CSS custom variables (`--accent-color`, `--accent-rgb`, `--color-blue-500`, etc.) dynamically on `:root` to update scrollbars, scanner glow effects, buttons, and active indicators.
+
+### Changed
+- **Enhanced Light Theme**: Upgraded Light Theme CSS overrides in `src/index.css` with clean light background panels, light input fields, and dark slate typography.
+- **System Theme Listener**: Added automatic OS media query listener (`prefers-color-scheme`) when Theme is set to System Mode.
+- **Synchronized Release Footprint**: Version bumped to `1.1.19` across `package.json`, `public/sw.js`, `README.md`, `CHANGELOG.md`, `src/App.tsx`, `src/components/HomeView.tsx`, and `src/components/AboutView.tsx`.
+
 ## [1.1.18] - 2026-08-22
 
 ### Added

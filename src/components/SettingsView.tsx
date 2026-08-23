@@ -97,24 +97,54 @@ export default function SettingsView({
               </div>
 
               {/* Accent Color Customizer */}
-              <div className="space-y-2 border-t border-gray-900 pt-4">
+              <div className="space-y-3 border-t border-gray-900 pt-4">
                 <div>
                   <div className="font-semibold text-gray-300">Accent Highlight Tone</div>
-                  <div className="text-[10px] text-gray-500 mt-0.5">Select high-contrast glow colors across action interfaces.</div>
+                  <div className="text-[10px] text-gray-500 mt-0.5">Select high-contrast color presets or choose a custom color.</div>
                 </div>
 
-                <div className="flex flex-wrap gap-2.5 pt-1.5">
+                <div className="flex flex-wrap items-center gap-3 pt-1">
                   {COLOR_PRESETS.map((color) => (
                     <button
                       type="button"
                       key={color.name}
                       onClick={() => onUpdateSettings({ accentColor: color.value })}
-                      className={`w-8 h-8 rounded-full cursor-pointer flex items-center justify-center border-2 transition-all ${settings.accentColor === color.value ? 'border-white scale-110 shadow-lg shadow-blue-500/20' : 'border-transparent hover:scale-105'}`}
+                      className={`w-8 h-8 rounded-full cursor-pointer flex items-center justify-center border-2 transition-all ${settings.accentColor.toLowerCase() === color.value.toLowerCase() ? 'border-white scale-110 shadow-lg' : 'border-transparent hover:scale-105'}`}
                       title={color.name}
                     >
                       <span className={`w-6 h-6 rounded-full block ${color.class}`}></span>
                     </button>
                   ))}
+
+                  {/* Custom Hex Color Picker */}
+                  <div className="flex items-center gap-2 pl-2 border-l border-gray-800">
+                    <label className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-gray-700 hover:border-gray-500 cursor-pointer flex items-center justify-center transition-transform hover:scale-105 shrink-0">
+                      <input
+                        type="color"
+                        value={settings.accentColor || '#3b82f6'}
+                        onChange={(e) => onUpdateSettings({ accentColor: e.target.value })}
+                        className="absolute -inset-2 w-12 h-12 cursor-pointer opacity-0"
+                        title="Pick custom color"
+                      />
+                      <span 
+                        className="w-full h-full block rounded-full" 
+                        style={{ backgroundColor: settings.accentColor || '#3b82f6' }}
+                      ></span>
+                    </label>
+                    <div className="flex items-center bg-gray-900 rounded-lg border border-gray-800 px-2 py-1">
+                      <span className="text-[10px] font-mono text-gray-500">HEX</span>
+                      <input
+                        type="text"
+                        value={settings.accentColor}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          onUpdateSettings({ accentColor: val });
+                        }}
+                        className="w-16 bg-transparent text-[11px] font-mono text-gray-200 outline-none ml-1.5 uppercase"
+                        maxLength={7}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 

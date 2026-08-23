@@ -145,17 +145,50 @@ export default function App() {
   // Sync settings theme to document and local persistence
   useEffect(() => {
     const root = document.documentElement;
-    if (settings.theme === 'light') {
-      root.classList.add('light-mode-active');
+
+    const applyThemeAndColor = () => {
+      // Determine active mode (dark or light)
+      let isLight = settings.theme === 'light';
+      if (settings.theme === 'system') {
+        isLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+      }
+
+      if (isLight) {
+        root.classList.add('light-mode-active');
+        document.body.style.backgroundColor = '#f8fafc';
+        document.body.style.color = '#0f172a';
+      } else {
+        root.classList.remove('light-mode-active');
+        document.body.style.backgroundColor = '#030712';
+        document.body.style.color = '#f3f4f6';
+      }
+
+      // Convert hex color to RGB for CSS variables
+      let hex = settings.accentColor.replace('#', '');
+      if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+      const r = parseInt(hex.substring(0, 2), 16) || 59;
+      const g = parseInt(hex.substring(2, 4), 16) || 130;
+      const b = parseInt(hex.substring(4, 6), 16) || 246;
+
+      root.style.setProperty('--accent-color', settings.accentColor);
+      root.style.setProperty('--accent-rgb', `${r}, ${g}, ${b}`);
       root.style.setProperty('--color-primary-500', settings.accentColor);
-      document.body.style.backgroundColor = '#f9fafb';
-      document.body.style.color = '#111827';
-    } else {
-      root.classList.remove('light-mode-active');
-      root.style.setProperty('--color-primary-500', settings.accentColor);
-      document.body.style.backgroundColor = '#030712';
-      document.body.style.color = '#f3f4f6';
+      root.style.setProperty('--color-blue-500', settings.accentColor);
+      root.style.setProperty('--color-blue-600', `rgb(${Math.max(0, r - 20)}, ${Math.max(0, g - 20)}, ${Math.max(0, b - 20)})`);
+      root.style.setProperty('--color-blue-400', `rgb(${Math.min(255, r + 30)}, ${Math.min(255, g + 30)}, ${Math.min(255, b + 30)})`);
+    };
+
+    applyThemeAndColor();
+
+    // Listen for OS system theme changes if set to system
+    if (settings.theme === 'system' && window.matchMedia) {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
+      const handleMediaChange = () => applyThemeAndColor();
+      mediaQuery.addEventListener('change', handleMediaChange);
+      localStorage.setItem('nfc_settings', JSON.stringify(settings));
+      return () => mediaQuery.removeEventListener('change', handleMediaChange);
     }
+
     localStorage.setItem('nfc_settings', JSON.stringify(settings));
   }, [settings]);
 
@@ -382,7 +415,7 @@ export default function App() {
               </div>
               <div className="text-left">
                 <div className="font-bold leading-none text-sm">NFC Writer</div>
-                <span className="text-[10px] text-gray-500 font-semibold font-mono tracking-wide mt-0.5 block">SUITE v1.1.18</span>
+                <span className="text-[10px] text-gray-500 font-semibold font-mono tracking-wide mt-0.5 block">SUITE v1.1.19</span>
               </div>
             </button>
           </div>
@@ -563,7 +596,7 @@ export default function App() {
             &copy; 2026 NFC Writer. Hosted at: <a href="https://nfc.aiue.se/" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-blue-400 font-mono">https://nfc.aiue.se/</a>
           </div>
           <div className="flex items-center gap-3">
-            <span>Version v1.1.18 (Production)</span>
+            <span>Version v1.1.19 (Production)</span>
             <span>•</span>
             <button type="button" onClick={() => handleNavigate('legal')} className="hover:text-blue-400 cursor-pointer">Privacy & Terms</button>
           </div>
