@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://nfc.aiue.se/sitemap.xml
+Sitemap: https://www.nfc.aiue.se/sitemap.xml

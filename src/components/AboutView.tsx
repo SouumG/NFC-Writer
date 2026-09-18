@@ -28,7 +28,7 @@ export default function AboutView() {
             <h3 className="font-bold text-sm text-gray-200">Contactless Engineering Built Client-Side</h3>
             <div className="text-xs text-gray-400 leading-relaxed space-y-3 select-text">
               <p>
-                NFC Writer (v1.1.19) is a robust, full-stack client-side Progressive Web Application designed for programming, scanning, parsing, and diagnosing high-frequency RFID/NFC chips. Built entirely in React and styled with a glassmorphism theme, this applet operates 100% locally on your browser.
+                NFC Writer (v1.1.20) is a robust, full-stack client-side Progressive Web Application designed for programming, scanning, parsing, and diagnosing high-frequency RFID/NFC chips. Built entirely in React and styled with a glassmorphism theme, this applet operates 100% locally on your browser.
               </p>
               <p>
                 By avoiding backend databases, your personal Wi-Fi configurations, phone lines, coordinates, or vCard details are never uploaded or synced to external servers, guaranteeing maximum privacy and cryptographic security.
@@ -48,22 +48,24 @@ export default function AboutView() {
                 <History className="w-4 h-4 text-blue-400" />
                 <span>System Changelog History</span>
               </h3>
-              <span className="text-[10px] font-mono text-gray-500">Release: v1.1.19</span>
+              <span className="text-[10px] font-mono text-gray-500">Release: v1.1.20</span>
             </div>
 
             <div className="space-y-4 text-xs font-mono">
               {/* Latest Version (Always Visible) */}
               <div className="space-y-2 bg-blue-500/5 border border-blue-500/20 p-4 rounded-lg">
                 <div className="flex items-center gap-2 pb-1 border-b border-blue-500/10">
-                  <span className="font-bold text-xs text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded border border-blue-500/30">v1.1.19</span>
-                  <span className="text-xs text-gray-200 font-bold uppercase">• Dynamic Custom Color Picker &amp; Theme Engine Optimization</span>
+                  <span className="font-bold text-xs text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded border border-blue-500/30">v1.1.20</span>
+                  <span className="text-xs text-gray-200 font-bold uppercase">• Canonical Domain Redirect, GSC Sitemap &amp; Shared Storage</span>
                 </div>
                 <ul className="list-disc pl-5 text-gray-300 text-[11px] space-y-1.5 leading-relaxed pt-1">
-                  <li><strong>Custom Hex Color Picker:</strong> Added a custom color picker input and hex text input alongside color presets in SettingsView to customize accent colors across the app.</li>
-                  <li><strong>Preset Color Swatch Isolation:</strong> Fixed preset swatch styling so option 2 (Dynamic Blue) and all preset colors remain unchanged when picking custom accent colors.</li>
-                  <li><strong>Interface Motion &amp; Verification Sync:</strong> Added animation disable toggling (`.no-animations`) and connected Write verification settings to auto-sync with user preferences.</li>
-                  <li><strong>Enhanced Light Theme &amp; OS Media Sync:</strong> Upgraded Light Theme CSS overrides with high-contrast card styling, light inputs, and automatic OS system theme synchronization.</li>
-                  <li><strong>Synchronized Release Footprint:</strong> Updated version badges to v1.1.19 across package.json, PWA service worker cache, README.md, CHANGELOG.md, and all UI views.</li>
+                  <li><strong>Canonical Domain Redirect:</strong> Added pre-execution script in index.html to route nfc.aiue.se visitors immediately to canonical www.nfc.aiue.se.</li>
+                  <li><strong>Unified Browser Storage:</strong> Consolidated local storage, scan histories, custom templates, and PWA caches under a single origin.</li>
+                  <li><strong>GSC Sitemap Specification Compliance:</strong> Eliminated all fragment identifiers (&lsquo;#&rsquo;) from sitemap.xml, resolving Google Search Console parse errors.</li>
+                  <li><strong>Canonical Subdomain Alignment:</strong> Updated all sitemap &lt;loc&gt; paths and robots.txt directives to canonical https://www.nfc.aiue.se/, preventing cross-subdomain rejections.</li>
+                  <li><strong>Dual Hash &amp; Path Route Support:</strong> Enhanced router to parse clean pathnames (/read, /write, /templates, /tools, etc.) alongside hash navigation.</li>
+                  <li><strong>Dynamic SEO Page Titles &amp; Schema:</strong> Added reactive &lt;title&gt; updates for each tool view, plus OpenGraph, Twitter card, and Schema.org WebApplication JSON-LD.</li>
+                  <li><strong>Synchronized Release Footprint:</strong> Version synchronized to v1.1.20 across package.json, PWA service worker cache, README.md, CHANGELOG.md, and all UI views.</li>
                 </ul>
               </div>
 
@@ -75,7 +77,7 @@ export default function AboutView() {
               >
                 <div className="flex items-center gap-2">
                   <History className="w-3.5 h-3.5 text-blue-400" />
-                  <span className="font-semibold">{showOlder ? "Hide older versions" : "Show older version history (18 releases)"}</span>
+                  <span className="font-semibold">{showOlder ? "Hide older versions" : "Show older version history (19 releases)"}</span>
                 </div>
                 {showOlder ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
               </button>
@@ -84,6 +86,19 @@ export default function AboutView() {
               {showOlder && (
                 <div className="space-y-4 pt-2 border-t border-gray-800/60 transition-all">
                   <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-gray-300">v1.1.19</span>
+                      <span className="text-[10px] text-gray-400 font-bold uppercase">• Dynamic Custom Color Picker &amp; Theme Engine Optimization</span>
+                    </div>
+                    <ul className="list-disc pl-4 text-gray-400 text-[11px] space-y-0.5 leading-relaxed">
+                      <li>Added custom hex color picker input and text input alongside color swatches in SettingsView.</li>
+                      <li>Fixed preset swatch styling so option 2 (Dynamic Blue) remains unchanged when selecting custom colors.</li>
+                      <li>Added animation disable toggling (.no-animations) and auto-sync for Write verification settings.</li>
+                      <li>Upgraded Light Theme CSS overrides and automated OS system theme synchronization.</li>
+                    </ul>
+                  </div>
+
+                  <div className="space-y-1 border-t border-gray-800/40 pt-3">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-gray-300">v1.1.18</span>
                       <span className="text-[10px] text-gray-400 font-bold uppercase">• Complete Client-Side Suite &amp; System Consolidation</span>

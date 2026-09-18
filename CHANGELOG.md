@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.20] - 2026-09-18
+
+### Added
+- **Canonical Domain Redirect**: Added an immediate canonical redirect from root domain `nfc.aiue.se` to `www.nfc.aiue.se` in both `index.html` (pre-execution script) and `src/App.tsx` (client route initialization).
+- **Unified Browser Storage & Persistence**: Consolidated the application origin to `www.nfc.aiue.se` so all preferences, accent color configurations, custom templates, scan histories, and offline PWA service worker caches remain unified and persistent without origin fragmentation.
+- **Dual Hash & Path Route Resolution**: Enhanced `src/App.tsx` routing engine to seamlessly resolve both clean pathnames (`/read`, `/write`, `/templates`, `/tools`, `/history`, `/settings`, `/help`, `/documentation`, `/about`, `/legal`) and hash anchors.
+- **Dynamic SEO Page Titles**: Configured dynamic document `<title>` updates corresponding to active application routes for enhanced search indexing.
+- **OpenGraph & Schema.org Structured Metadata**: Integrated canonical `<link rel="canonical">`, OpenGraph tags, Twitter cards, and Schema.org `WebApplication` JSON-LD structured data into `index.html`.
+
+### Fixed
+- **Google Search Console Sitemap Compatibility**: Fixed sitemap readability errors in Google Search Console by removing all URL fragment identifiers (`#`) from `public/sitemap.xml`, which are prohibited by Google and the Sitemaps XML protocol.
+- **Canonical Origin Alignment in Sitemap & Robots**: Updated all sitemap `<loc>` URLs and `robots.txt` Sitemap directive to canonical `https://www.nfc.aiue.se/` to prevent cross-subdomain and redirection parsing rejections in GSC.
+- **W3C Datetime Freshness**: Updated sitemap `<lastmod>` timestamps to current release date (`2026-09-18`).
+
+### Changed
+- **Synchronized Release Footprint**: Version set to `1.1.20` across `package.json`, `public/sw.js`, `README.md`, `CHANGELOG.md`, `src/App.tsx`, `src/components/HomeView.tsx`, and `src/components/AboutView.tsx`.
+
 ## [1.1.19] - 2026-08-22
 
 ### Added

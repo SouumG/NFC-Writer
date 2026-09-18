@@ -6,8 +6,38 @@
     <meta name="theme-color" content="#030712" />
     <meta name="description" content="A professional-grade Progressive Web App (PWA) client-side NFC writer and reader utility." />
     <meta name="google-site-verification" content="SnPgPPX-VFOs5CxONbufB-c_T25FbzMJ_Kf8KVzI5no" />
+    <link rel="canonical" href="https://www.nfc.aiue.se/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="NFC Writer — Contactless NDEF Suite" />
+    <meta property="og:description" content="A professional-grade Progressive Web App (PWA) client-side NFC writer and reader utility." />
+    <meta property="og:url" content="https://www.nfc.aiue.se/" />
+    <meta property="og:site_name" content="NFC Writer" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="NFC Writer — Contactless NDEF Suite" />
+    <meta name="twitter:description" content="A professional-grade Progressive Web App (PWA) client-side NFC writer and reader utility." />
     <link rel="manifest" href="/manifest.json" />
     <title>NFC Writer — Contactless NDEF Suite</title>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "NFC Writer",
+      "url": "https://www.nfc.aiue.se/",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "All",
+      "description": "A professional-grade Progressive Web App (PWA) client-side NFC writer and reader utility.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
+    <script>
+      if (typeof window !== 'undefined' && window.location.hostname === 'nfc.aiue.se') {
+        window.location.replace('https://www.nfc.aiue.se' + window.location.pathname + window.location.search + window.location.hash);
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

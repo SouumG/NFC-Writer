@@ -117,28 +117,50 @@ export default function App() {
     };
   }, []);
 
-  // Handle Hash-routing
+  // Handle Hash and Path routing with dynamic SEO page titles
   useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.replace('#', '');
+    const pageTitles: Record<string, string> = {
+      home: 'NFC Writer — Contactless NDEF Suite',
+      read: 'NFC Reader & Tag Inspection — NFC Writer',
+      write: 'NFC Tag Writer & NDEF Encoder — NFC Writer',
+      templates: 'Pre-Built NDEF Templates — NFC Writer',
+      history: 'NFC Scan & Write Activity History — NFC Writer',
+      tools: 'NFC Tools & Formatting Suite — NFC Writer',
+      settings: 'Suite Settings & Theme Engine — NFC Writer',
+      help: 'NFC Diagnostics & Browser Compatibility — NFC Writer',
+      about: 'About NFC Writer — Contactless NDEF Suite',
+      legal: 'Privacy Policy & Terms of Service — NFC Writer',
+      documentation: 'NDEF Developer Documentation — NFC Writer',
+    };
+
+    const handleRouteChange = () => {
+      const hash = window.location.hash.replace('#', '').toLowerCase();
+      const path = window.location.pathname.replace(/^\//, '').replace(/\/$/, '').toLowerCase();
+      const target = hash || path;
       const validPages = ['home', 'read', 'write', 'templates', 'history', 'tools', 'settings', 'help', 'about', 'legal', 'documentation'];
-      if (validPages.includes(hash)) {
-        setCurrentPage(hash);
-      } else if (!hash) {
+      
+      if (validPages.includes(target)) {
+        setCurrentPage(target);
+        document.title = pageTitles[target] || 'NFC Writer — Contactless NDEF Suite';
+      } else if (!target || target === 'index.html') {
         setCurrentPage('home');
+        document.title = pageTitles.home;
       } else {
         setCurrentPage('404');
+        document.title = 'Page Not Found — NFC Writer';
       }
       setSidebarOpen(false);
       window.scrollTo(0, 0);
     };
 
-    window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('hashchange', handleRouteChange);
+    window.addEventListener('popstate', handleRouteChange);
     // Trigger initially
-    handleHashChange();
+    handleRouteChange();
 
     return () => {
-      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('hashchange', handleRouteChange);
+      window.removeEventListener('popstate', handleRouteChange);
     };
   }, []);
 
@@ -323,6 +345,13 @@ export default function App() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname.toLowerCase();
+
+      // Canonical redirect: route root domain to www subdomain so storage and PWA cache are unified
+      if (hostname === 'nfc.aiue.se') {
+        window.location.replace(`https://www.nfc.aiue.se${window.location.pathname}${window.location.search}${window.location.hash}`);
+        return;
+      }
+
       const isOfficialDomain = 
         hostname === 'nfc.aiue.se' || 
         hostname === 'www.nfc.aiue.se';
@@ -425,7 +454,7 @@ export default function App() {
               </div>
               <div className="text-left">
                 <div className="font-bold leading-none text-sm">NFC Writer</div>
-                <span className="text-[10px] text-gray-500 font-semibold font-mono tracking-wide mt-0.5 block">SUITE v1.1.19</span>
+                <span className="text-[10px] text-gray-500 font-semibold font-mono tracking-wide mt-0.5 block">SUITE v1.1.20</span>
               </div>
             </button>
           </div>
@@ -603,10 +632,10 @@ export default function App() {
         {/* Unified Frame Footer */}
         <footer className="pt-12 pb-4 border-t border-gray-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-500">
           <div>
-            &copy; 2026 NFC Writer. Hosted at: <a href="https://nfc.aiue.se/" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-blue-400 font-mono">https://nfc.aiue.se/</a>
+            &copy; 2026 NFC Writer. Hosted at: <a href="https://www.nfc.aiue.se/" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-blue-400 font-mono">https://www.nfc.aiue.se/</a>
           </div>
           <div className="flex items-center gap-3">
-            <span>Version v1.1.19 (Production)</span>
+            <span>Version v1.1.20 (Production)</span>
             <span>•</span>
             <button type="button" onClick={() => handleNavigate('legal')} className="hover:text-blue-400 cursor-pointer">Privacy & Terms</button>
           </div>
